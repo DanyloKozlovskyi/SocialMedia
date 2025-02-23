@@ -1,4 +1,5 @@
 using MenuVoting.DataAccess.Models.SeedRoles;
+using SocialMedia.WebApi.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SocialMedia.DataAccess;
 using SocialMedia.DataAccess.Identity;
+using SocialMedia.WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,18 +59,22 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo() { Title = "MenuVoting WebApi", Version = "1.0" });
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo() { Title = "Social Media WebApi", Version = "1.0" });
 });
 
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policyBuilder =>
     {
-        policyBuilder.WithOrigins("https://localhost:4200")
+        policyBuilder.WithOrigins("http://localhost:3000")
         .AllowAnyHeader()
         .AllowAnyMethod();
     });
 });
+
+builder.Services.AddTransient<IJwtService, JwtService>();
+
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddAuthorization();
 

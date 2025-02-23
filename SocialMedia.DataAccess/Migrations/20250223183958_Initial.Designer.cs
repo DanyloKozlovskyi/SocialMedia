@@ -12,8 +12,8 @@ using SocialMedia.DataAccess;
 namespace SocialMedia.DataAccess.Migrations
 {
     [DbContext(typeof(SocialMediaDbContext))]
-    [Migration("20250212205411_initial")]
-    partial class initial
+    [Migration("20250223183958_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -191,9 +191,6 @@ namespace SocialMedia.DataAccess.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PersonName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
