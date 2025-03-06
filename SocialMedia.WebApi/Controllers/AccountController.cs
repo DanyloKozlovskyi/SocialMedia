@@ -32,7 +32,7 @@ namespace SocialMedia.WebApi.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> PostRegister(RegisterDto registerDto)
+        public async Task<IActionResult> Register(RegisterDto registerDto)
         {
             // Validation 
             if (!ModelState.IsValid)
@@ -86,7 +86,7 @@ namespace SocialMedia.WebApi.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> PostLogin(LoginDto loginDTO)
+        public async Task<IActionResult> Login(LoginDto loginDTO)
         {
             // Validation 
             if (!ModelState.IsValid)
@@ -132,8 +132,8 @@ namespace SocialMedia.WebApi.Controllers
             return NoContent();
         }
 
-        [HttpPost("generate-new-jwt-token")]
-        public async Task<IActionResult> GenerateNewAccessToken(TokenModel tokenModel)
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh(TokenModel tokenModel)
         {
             if (tokenModel == null)
             {
