@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using SocialMedia.DataAccess;
 using SocialMedia.DataAccess.Identity;
 using SocialMedia.WebApi.Services;
+using SocialMedia.WebApi.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +74,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddTransient<IJwtService, JwtService>();
+builder.Services.AddScoped<IBlogService, BlogService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
