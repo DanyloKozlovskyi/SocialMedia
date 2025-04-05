@@ -14,7 +14,7 @@ namespace SocialMedia.DataAccess.Models
     {
         [Key]
         public Guid Id { get; set; }
-        public string? Label { get; set; }
+        public string? Description { get; set; }
         public string? Image64 { get; set; }
         public DateTime PostedAt { get; set; }
         [ForeignKey(nameof(ApplicationUser))]

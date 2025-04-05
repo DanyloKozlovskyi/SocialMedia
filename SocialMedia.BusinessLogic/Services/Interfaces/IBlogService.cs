@@ -7,5 +7,6 @@ namespace SocialMedia.WebApi.Services.Interfaces
         Task<IEnumerable<BlogPost>?> GetAll();
         Task<BlogPost?> GetById(Guid id);
         Task<IEnumerable<BlogPost>?> GetByUserId(Guid userId);
+        Task<BlogPost?> Create(BlogPost blogPost);
     }
 }
