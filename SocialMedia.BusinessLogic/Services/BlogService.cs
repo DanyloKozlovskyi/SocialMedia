@@ -12,6 +12,14 @@ namespace SocialMedia.WebApi.Services
         {
             context = dbContext;
         }
+
+        public async Task<BlogPost?> Create(BlogPost blogPost)
+        {
+            await context.AddAsync(blogPost);
+            await context.SaveChangesAsync();
+            return blogPost;
+        }
+
         public async Task<IEnumerable<BlogPost>?> GetAll()
         {
             return await context.Blogs.ToListAsync();
