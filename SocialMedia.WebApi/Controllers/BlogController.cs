@@ -6,7 +6,6 @@ using SocialMedia.WebApi.Services.Interfaces;
 namespace SocialMedia.WebApi.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class BlogController : ControllerBase
     {
