@@ -8,17 +8,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SocialMedia.DataAccess.Models
+namespace SocialMedia.DataAccess.Models;
+public class BlogPost
 {
-    public class BlogPost
-    {
-        [Key]
-        public Guid Id { get; set; }
-        public string? Description { get; set; }
-        public string? Image64 { get; set; }
-        public DateTime PostedAt { get; set; }
-        [ForeignKey(nameof(ApplicationUser))]
-        public Guid UserId { get; set; }
-        public virtual ApplicationUser? User { get; set; }
-    }
+    [Key]
+    public Guid Id { get; set; }
+    public string? Description { get; set; }
+    public string? Image64 { get; set; }
+    public DateTime PostedAt { get; set; }
+    [ForeignKey(nameof(ApplicationUser))]
+    public Guid UserId { get; set; }
+    public virtual ApplicationUser? User { get; set; }
+    public virtual IEnumerable<Like>? Likes { get; set; }
 }

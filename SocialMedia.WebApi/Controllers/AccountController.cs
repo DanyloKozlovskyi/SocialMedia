@@ -143,7 +143,6 @@ namespace SocialMedia.WebApi.Controllers
             string? token = tokenModel.Token;
             string? refreshToken = tokenModel.RefreshToken;
 
-
             ClaimsPrincipal? principal = jwtService.GetPrincipalFromJwtToken(token);
             if (principal == null)
             {

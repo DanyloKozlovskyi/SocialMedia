@@ -15,5 +15,6 @@ namespace SocialMedia.DataAccess.Identity
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpirationDateTime { get; set; }
         public IEnumerable<BlogPost>? Posts { get; set; }
+        public virtual IEnumerable<Like>? Likes { get; set; }
     }
 }
