@@ -51,7 +51,7 @@ namespace SocialMedia.WebApi.Services
             return await context.Likes.Where(x => x.UserId == userId && posts.PostIds.Contains(x.PostId) && x.IsLiked).ToListAsync();
         }
 
-        public async Task<Like?> SetLike(Guid postId, Guid? userId)
+        public async Task<Like?> SetLike(Guid postId, Guid userId)
         {
             var like = await GetLike(postId, userId);
 
