@@ -54,14 +54,8 @@ namespace SocialMedia.WebApi.Controllers
         }
         [HttpPut("{id}/[action]")]
         [Authorize]
-        public async Task<IActionResult> SetLike(Guid id)
+        public async Task<IActionResult> SetLike(Guid id, [FromBody] Guid userId)
         {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-                return Unauthorized();
-
-            var userId = Guid.Parse(userIdClaim);
-
             var like = await blogPostService.SetLike(id, userId);
             return Ok(like);
         }

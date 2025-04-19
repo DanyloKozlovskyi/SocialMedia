@@ -12,6 +12,6 @@ namespace SocialMedia.WebApi.Services.Interfaces
         Task<Like?> GetLike(Guid? postId, Guid? userId);
         Task<IEnumerable<Like>?> GetLikes(Guid? postId);
         Task<IEnumerable<Like>?> GetUserLikes(Guid? userId, PostsRequestModel posts);
-        Task<Like?> SetLike(Guid postId, Guid? userId);
+        Task<Like?> SetLike(Guid postId, Guid userId);
     }
 }
