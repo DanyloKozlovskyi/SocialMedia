@@ -16,7 +16,7 @@ public class Like
     public Guid? UserId { get; set; }
     public ApplicationUser? User { get; set; }
     [ForeignKey(nameof(BlogPost))]
-    public Guid? PostId { get; set; }
+    public Guid PostId { get; set; }
     public BlogPost? Post { get; set; }
 
     public bool IsLiked { get; set; } = true;

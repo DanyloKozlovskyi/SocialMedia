@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SocialMedia.BusinessLogic.Dtos;
 using SocialMedia.DataAccess.Models;
 using SocialMedia.WebApi.Services.Interfaces;
 using System.Security.Claims;
@@ -50,6 +51,46 @@ namespace SocialMedia.WebApi.Controllers
         {
             var blogs = await blogPostService.GetByUserId(id);
             return Ok(blogs);
+        }
+        [HttpPut("{id}/[action]")]
+        [Authorize]
+        public async Task<IActionResult> SetLike(Guid id)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized();
+
+            var userId = Guid.Parse(userIdClaim);
+
+            var like = await blogPostService.SetLike(id, userId);
+            return Ok(like);
+        }
+        [HttpGet("{id}/[action]")]
+        [Authorize]
+        public async Task<IActionResult> GetLike(Guid id)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized();
+
+            var userId = Guid.Parse(userIdClaim);
+
+            var like = await blogPostService.GetLike(id, userId);
+            return Ok(like);
+        }
+        [HttpGet("{id}/[action]")]
+        [Authorize]
+        public async Task<IActionResult> GetLikes(Guid id)
+        {
+            var likes = await blogPostService.GetLikes(id);
+            return Ok(likes);
+        }
+        [HttpPost("user/{userId}/[action]")]
+        [Authorize]
+        public async Task<IActionResult> GetUserLikes([FromRoute]Guid userId, [FromBody] PostsRequestModel posts)
+        {
+            var likes = await blogPostService.GetUserLikes(userId, posts);
+            return Ok(likes);
         }
     }
 }

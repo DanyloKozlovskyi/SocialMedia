@@ -14,6 +14,7 @@ namespace SocialMedia.DataAccess
     public class SocialMediaDbContext: IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
     {
         public DbSet<BlogPost> Blogs { get; set; }
+        public DbSet<Like> Likes { get; set; }
         public SocialMediaDbContext(DbContextOptions options) : base(options)
         {
 
