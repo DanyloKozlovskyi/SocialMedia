@@ -45,6 +45,13 @@ namespace SocialMedia.WebApi.Controllers
             var blog = await blogPostService.GetById(id);
             return Ok(blog);
         }
+        [HttpGet("[action]/{parentId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetByParentId(Guid parentId)
+        {
+            var blogs = await blogPostService.GetByParentId(parentId);
+            return Ok(blogs);
+        }
         [HttpGet("[action]/{id}")]
         [Authorize]
         public async Task<IActionResult> GetByUserId(Guid id)
@@ -56,8 +63,8 @@ namespace SocialMedia.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> SetLike(Guid id, [FromBody] Guid userId)
         {
-            var like = await blogPostService.SetLike(id, userId);
-            return Ok(like);
+            var likes = await blogPostService.SetLike(id, userId);
+            return Ok(likes);
         }
         [HttpGet("{id}/[action]")]
         [Authorize]
