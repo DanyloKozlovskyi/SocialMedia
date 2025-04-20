@@ -19,5 +19,9 @@ public class BlogPost
     [ForeignKey(nameof(ApplicationUser))]
     public Guid UserId { get; set; }
     public virtual ApplicationUser? User { get; set; }
-    public virtual IEnumerable<Like>? Likes { get; set; }
+    public virtual ICollection<Like>? Likes { get; set; }
+    public Guid? ParentId { get; set; } = null; // null if it is actual post
+    [ForeignKey(nameof(ParentId))]
+    public BlogPost? Parent { get; set; }
+    public ICollection<BlogPost> Comments { get; set; } = new List<BlogPost>();
 }

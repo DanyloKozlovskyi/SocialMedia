@@ -1,5 +1,4 @@
 using MenuVoting.DataAccess.Models.SeedRoles;
-using SocialMedia.WebApi.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +10,7 @@ using SocialMedia.DataAccess;
 using SocialMedia.DataAccess.Identity;
 using SocialMedia.WebApi.Services;
 using SocialMedia.WebApi.Services.Interfaces;
+using SocialMedia.BusinessLogic.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 

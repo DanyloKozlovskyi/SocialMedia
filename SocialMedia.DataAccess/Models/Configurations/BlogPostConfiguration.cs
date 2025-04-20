@@ -16,6 +16,7 @@ namespace SocialMedia.DataAccess.Models.Configurations
 
             builder.HasOne(x => x.User).WithMany(x => x.Posts);
             builder.HasMany(x => x.Likes).WithOne(x => x.Post);
+            builder.HasOne(x => x.Parent).WithMany(x => x.Comments);
         }
     }
 }
