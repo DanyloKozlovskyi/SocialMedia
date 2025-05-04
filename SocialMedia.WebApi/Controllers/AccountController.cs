@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SocialMedia.BusinessLogic.Dtos.Identity;
 using SocialMedia.DataAccess.Identity;
 using SocialMedia.WebApi.Dtos.Identity;
 using SocialMedia.WebApi.Services;
@@ -11,7 +13,6 @@ using System.Security.Claims;
 namespace SocialMedia.WebApi.Controllers
 {
     [Route("api/[controller]")]
-    [AllowAnonymous]
     [ApiController]
     public class AccountController : ControllerBase
     {
@@ -31,7 +32,47 @@ namespace SocialMedia.WebApi.Controllers
             mapper = mapp;
         }
 
+        private Guid? GetUserId()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid? userId = Guid.TryParse(userIdString, out var parsed) ? parsed : (Guid?)null;
+            return userId;
+        }
+
+        [HttpGet("[action]")]
+        [Authorize]
+        public async Task<IActionResult> GetUserInfo()
+        {
+            var userId = GetUserId();
+            var user = await userManager.Users.FirstOrDefaultAsync(x => x.Id == userId);
+            return Ok(user);
+        }
+
+        [HttpPost("[action]")]
+        [Authorize]
+        public async Task<IActionResult> EditProfile(UpdateUser updateUser)
+        {
+            var userId = GetUserId();
+            var userIdString = userId.ToString();
+            var user = await userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                return NotFound();
+
+            // Update fields
+            user.Email = updateUser.Name;
+            user.Description = updateUser.Description;
+            user.Logo = updateUser.Logo;
+
+            var result = await userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok("User updated successfully");
+        }
+
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register(RegisterDto registerDto)
         {
             // Validation 
@@ -74,6 +115,7 @@ namespace SocialMedia.WebApi.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> IsEmailAlreadyRegistered(string email)
         {
             ApplicationUser? user = await userManager.FindByEmailAsync(email);
@@ -86,6 +128,7 @@ namespace SocialMedia.WebApi.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login(LoginDto loginDTO)
         {
             // Validation 
@@ -133,6 +176,7 @@ namespace SocialMedia.WebApi.Controllers
         }
 
         [HttpPost("refresh")]
+        [AllowAnonymous]
         public async Task<IActionResult> Refresh(TokenModel tokenModel)
         {
             if (tokenModel == null)

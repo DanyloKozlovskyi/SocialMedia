@@ -66,7 +66,7 @@ namespace SocialMedia.WebApi.Controllers
             return Ok(blogs);
         }
         [HttpGet("[action]/{id}")]
-        [Authorize]
+        [AllowAnonymous]
         public async Task<IActionResult> GetByUserId(Guid id)
         {
             var userRequestId = GetUserId();

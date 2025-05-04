@@ -25,7 +25,7 @@ namespace SocialMedia.WebApi.Services
 
         public AuthenticationResponse CreateJwtToken(ApplicationUser user)
         {
-            DateTime expiration = DateTime.UtcNow.AddMinutes(Convert.ToDouble(configuration["Jwt:EXPIRATION_MINUTES"]));
+            DateTime expiration = DateTime.UtcNow.AddHours(Convert.ToDouble(configuration["Jwt:EXPIRATION_HOURS"]));
 
             Claim[] claims = new Claim[]
                 {
@@ -59,8 +59,6 @@ namespace SocialMedia.WebApi.Services
             //possible error here if key size is less than 256 bytes 
             string token = tokenHandler.WriteToken(tokenGenerator);
 
-            Console.WriteLine(Convert.ToInt32(configuration["Jwt:EXPIRATION_MINUTES"]));
-
             return new AuthenticationResponse()
             {
                 Token = token,
@@ -69,7 +67,7 @@ namespace SocialMedia.WebApi.Services
                 Expiration = expiration,
                 RefreshToken = GenerateRefreshToken(),
                 //*here I changed Utc to UtcNow
-                RefreshTokenExpirationDateTime = DateTime.UtcNow.AddMinutes(Convert.ToInt32(configuration["Jwt:EXPIRATION_MINUTES"]))
+                RefreshTokenExpirationDateTime = DateTime.UtcNow.AddHours(Convert.ToInt32(configuration["Jwt:EXPIRATION_HOURS"]))
             };
         }
 
