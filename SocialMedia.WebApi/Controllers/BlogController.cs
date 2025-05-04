@@ -18,11 +18,20 @@ namespace SocialMedia.WebApi.Controllers
             blogPostService = blogService;
         }
 
+        private Guid? GetUserId()
+        {
+            var userIdString =  User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid? userId = Guid.TryParse(userIdString, out var parsed) ? parsed : (Guid?)null;
+            return userId;
+        }
+
         [HttpGet("[action]")]
         [AllowAnonymous]
         public async Task<IActionResult> All()
         {
-            var blogs =  await blogPostService.GetAll();
+            var userId = GetUserId();
+            
+            var blogs =  await blogPostService.GetAll(userId);
             return Ok(blogs);
         }
         [HttpPost("[action]")]
@@ -42,21 +51,27 @@ namespace SocialMedia.WebApi.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var blog = await blogPostService.GetById(id);
+            var userId = GetUserId();
+
+            var blog = await blogPostService.GetById(id, userId);
             return Ok(blog);
         }
         [HttpGet("[action]/{parentId}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetByParentId(Guid parentId)
         {
-            var blogs = await blogPostService.GetByParentId(parentId);
+            var userId = GetUserId();
+
+            var blogs = await blogPostService.GetByParentId(parentId, userId);
             return Ok(blogs);
         }
         [HttpGet("[action]/{id}")]
         [Authorize]
         public async Task<IActionResult> GetByUserId(Guid id)
         {
-            var blogs = await blogPostService.GetByUserId(id);
+            var userRequestId = GetUserId();
+
+            var blogs = await blogPostService.GetByUserId(id, userRequestId);
             return Ok(blogs);
         }
         [HttpPut("{id}/[action]")]

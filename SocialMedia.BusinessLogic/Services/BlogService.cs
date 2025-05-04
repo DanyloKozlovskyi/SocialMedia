@@ -6,6 +6,7 @@ using SocialMedia.BusinessLogic.Utilities;
 using SocialMedia.DataAccess;
 using SocialMedia.DataAccess.Models;
 using SocialMedia.WebApi.Services.Interfaces;
+using System.Security.Claims;
 
 namespace SocialMedia.WebApi.Services
 {
@@ -26,22 +27,23 @@ namespace SocialMedia.WebApi.Services
             return blogPost;
         }
 
-        public async Task<IEnumerable<PostResponseModel>?> GetAll()
+        public async Task<IEnumerable<PostResponseModel>?> GetAll(Guid? userId = null)
         {
-            return await context.Blogs.Where(x => x.ParentId == null).ToPostResponseModelQueryable(userRequestId: null).ToListAsync();
+            
+            return await context.Blogs.Where(x => x.ParentId == null).ToPostResponseModelQueryable(userRequestId: userId).ToListAsync();
         }
-        public async Task<PostResponseModel?> GetById(Guid id)
+        public async Task<PostResponseModel?> GetById(Guid id, Guid? userId = null)
         {
-            return await context.Blogs.ToPostResponseModelQueryable(userRequestId: null).FirstOrDefaultAsync(x => x.Id == id);
+            return await context.Blogs.ToPostResponseModelQueryable(userRequestId: userId).FirstOrDefaultAsync(x => x.Id == id);
         }
-        public async Task<IEnumerable<BlogPost>?> GetByParentId(Guid parentId)
+        public async Task<IEnumerable<PostResponseModel>?> GetByParentId(Guid parentId, Guid? userId = null)
         {
-            return await context.Blogs.Where(x => x.ParentId == parentId).ToListAsync();
+            return await context.Blogs.Where(x => x.ParentId == parentId).ToPostResponseModelQueryable(userRequestId: userId).ToListAsync();
         }
 
-        public async Task<IEnumerable<BlogPost>?> GetByUserId(Guid userId)
+        public async Task<IEnumerable<PostResponseModel>?> GetByUserId(Guid userId, Guid? userRequestId = null)
         {
-            return await context.Blogs.Where(x => x.UserId == userId).ToListAsync();
+            return await context.Blogs.Where(x => x.UserId == userId).ToPostResponseModelQueryable(userRequestId: userId).ToListAsync();
         }
 
         public async Task<Like?> GetLike(Guid? postId, Guid? userId)

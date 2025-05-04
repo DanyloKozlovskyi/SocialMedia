@@ -33,10 +33,15 @@ public static class BlogPostExtension
                     UserName = comment.User?.UserName,
                     LikeCount = comment.Likes != null ? comment.Likes.Count() : 0,
                     ParentId = comment.ParentId,
-                    Comments = null // Prevent deeper nesting of comments
+                    Comments = null, // Prevent deeper nesting of comments
+                    CommentCount = comment.Comments != null ? comment.Comments.Count() : 0,
+                    IsLiked = userRequestId != null ? comment.Likes.Any(x => x.UserId == userRequestId && x.IsLiked) : false,
+                    IsCommented = userRequestId != null ? comment.Comments.Any(x => x.UserId == userRequestId) : false
                 }).ToList()
                 : null,
-            IsLiked = userRequestId != null ? Convert.ToBoolean(post?.Likes?.Count(x=>x.UserId == userRequestId)) : false
+            CommentCount = post.Comments != null ? post.Comments.Count() : 0,
+            IsLiked = userRequestId != null ? post.Likes.Any(x => x.UserId == userRequestId && x.IsLiked) : false,
+            IsCommented = userRequestId != null ? post.Comments.Any(x => x.UserId == userRequestId) : false
         };
     }
 
@@ -62,10 +67,15 @@ public static class BlogPostExtension
                     UserName = comment.User.UserName, // Assuming User is included
                     LikeCount = comment.Likes.Count(),
                     ParentId = comment.ParentId,
-                    Comments = null // Prevent deeper nesting of comments
+                    Comments = null, // Prevent deeper nesting of comments
+                    CommentCount = comment.Comments != null ? comment.Comments.Count() : 0,
+                    IsLiked = userRequestId != null ? comment.Likes.Any(x => x.UserId == userRequestId && x.IsLiked) : false,
+                    IsCommented = userRequestId != null ? comment.Comments.Any(x => x.UserId == userRequestId) : false
                 }).ToList()
                 : null,
-            IsLiked = userRequestId != null ? Convert.ToBoolean(post.Likes.Count(x => x.UserId == userRequestId)) : false
+            CommentCount = post.Comments != null ? post.Comments.Count() : 0,
+            IsLiked = userRequestId != null ? post.Likes.Any(x => x.UserId == userRequestId && x.IsLiked) : false,
+            IsCommented = userRequestId != null ? post.Comments.Any(x => x.UserId == userRequestId) : false
         });
     }
 }
