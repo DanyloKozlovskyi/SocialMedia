@@ -17,5 +17,7 @@ public class PostResponseModel
     public int LikeCount { get; set; }
     public Guid? ParentId { get; set; }
     public List<PostResponseModel>? Comments { get; set; }
+    public int CommentCount { get; set; }
     public bool IsLiked { get; set; } = false;
+    public bool IsCommented { get; set; } = false;
 }
