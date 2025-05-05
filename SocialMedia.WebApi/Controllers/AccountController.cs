@@ -59,7 +59,7 @@ namespace SocialMedia.WebApi.Controllers
                 return NotFound();
 
             // Update fields
-            user.Email = updateUser.Name;
+            user.Name = updateUser.Name;
             user.Description = updateUser.Description;
             user.Logo = updateUser.Logo;
 
