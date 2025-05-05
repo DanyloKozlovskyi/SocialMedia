@@ -1,4 +1,5 @@
 ﻿using SocialMedia.BusinessLogic.Dtos;
+using SocialMedia.BusinessLogic.Dtos.Identity;
 using SocialMedia.DataAccess.Models;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ public static class BlogPostExtension
             Image64 = post.Image64,
             PostedAt = post.PostedAt,
             UserId = post.UserId,
-            UserName = post.User?.UserName,
+            User = new UserResponseModel() { UserName = post.User?.Name, Description = post.User?.Description, Logo = post.User?.Logo, Id = post.UserId },
             LikeCount = post.Likes != null ? post.Likes.Count(x => x.IsLiked) : 0,
             Comments = post.Comments != null
                 ? post.Comments.Select(comment => new PostResponseModel
@@ -30,7 +31,7 @@ public static class BlogPostExtension
                     Image64 = comment.Image64,
                     PostedAt = comment.PostedAt,
                     UserId = comment.UserId,
-                    UserName = comment.User?.UserName,
+                    User = new UserResponseModel() { UserName = comment.User?.Name, Description = comment.User?.Description, Logo = comment.User?.Logo, Id = comment.UserId },
                     LikeCount = comment.Likes != null ? comment.Likes.Count() : 0,
                     ParentId = comment.ParentId,
                     Comments = null, // Prevent deeper nesting of comments
@@ -54,7 +55,7 @@ public static class BlogPostExtension
             Image64 = post.Image64,
             PostedAt = post.PostedAt,
             UserId = post.UserId,
-            UserName = post.User.UserName, // Assuming User is included in the query
+            User = new UserResponseModel() { UserName = post.User.Name, Description = post.User.Description, Logo = post.User.Logo, Id = post.UserId },
             LikeCount = post.Likes.Count(x => x.IsLiked),
             Comments = post.Comments != null
                 ? post.Comments.Select(comment => new PostResponseModel
@@ -64,7 +65,7 @@ public static class BlogPostExtension
                     Image64 = comment.Image64,
                     PostedAt = comment.PostedAt,
                     UserId = comment.UserId,
-                    UserName = comment.User.UserName, // Assuming User is included
+                    User = new UserResponseModel() { UserName = comment.User.Name, Description = comment.User.Description, Logo = comment.User.Logo, Id = comment.UserId },
                     LikeCount = comment.Likes.Count(),
                     ParentId = comment.ParentId,
                     Comments = null, // Prevent deeper nesting of comments
