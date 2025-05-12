@@ -41,9 +41,17 @@ namespace SocialMedia.WebApi.Controllers
 
         [HttpGet("[action]")]
         [Authorize]
-        public async Task<IActionResult> GetUserInfo()
+        public async Task<IActionResult> GetPersonalInfo()
         {
             var userId = GetUserId();
+            var user = await userManager.Users.FirstOrDefaultAsync(x => x.Id == userId);
+            return Ok(user);
+        }
+
+        [HttpGet("[action]/{userId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetUserInfo([FromRoute] Guid userId)
+        {
             var user = await userManager.Users.FirstOrDefaultAsync(x => x.Id == userId);
             return Ok(user);
         }
