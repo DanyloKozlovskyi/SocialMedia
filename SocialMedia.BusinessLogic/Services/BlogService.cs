@@ -43,7 +43,7 @@ namespace SocialMedia.WebApi.Services
 
         public async Task<IEnumerable<PostResponseModel>?> GetByUserId(Guid userId, Guid? userRequestId = null)
         {
-            return await context.Blogs.Where(x => x.UserId == userId).ToPostResponseModelQueryable(userRequestId: userId).ToListAsync();
+            return await context.Blogs.Where(x => x.UserId == userId).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
         }
 
         public async Task<Like?> GetLike(Guid? postId, Guid? userId)
