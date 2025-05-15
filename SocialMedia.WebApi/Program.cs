@@ -26,7 +26,7 @@ builder.Services.AddControllers(options =>
 builder.Services.AddControllers();
 builder.Services.AddDbContext<SocialMediaDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), opt => opt.CommandTimeout(60));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), opt => opt.CommandTimeout(60).UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
 });
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
