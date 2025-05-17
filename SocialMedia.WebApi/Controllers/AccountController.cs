@@ -56,6 +56,20 @@ namespace SocialMedia.WebApi.Controllers
             return Ok(user);
         }
 
+        [HttpGet("[action]")]
+        [AllowAnonymous]
+        public async Task<IActionResult> FilterUsers([FromQuery] string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return BadRequest("Query is required.");
+
+            var users = await userManager.Users
+                .Where(u => u.Name.ToLower().Contains(query.ToLower()))
+                .ToListAsync();
+
+            return Ok(users);
+        }
+
         [HttpPost("[action]")]
         [Authorize]
         public async Task<IActionResult> EditProfile(UpdateUser updateUser)
