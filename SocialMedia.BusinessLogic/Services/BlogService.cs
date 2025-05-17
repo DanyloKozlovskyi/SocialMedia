@@ -26,10 +26,14 @@ namespace SocialMedia.WebApi.Services
             await context.SaveChangesAsync();
             return blogPost;
         }
+        public async Task<IEnumerable<PostResponseModel>?> GetByDescription(string description, Guid? userRequestId = null)
+        {
+            var blogs = await context.Blogs.Where(u => u.Description.ToLower().Contains(description.ToLower())).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
+            return blogs;
+        }
 
         public async Task<IEnumerable<PostResponseModel>?> GetAll(Guid? userId = null)
         {
-            
             return await context.Blogs.Where(x => x.ParentId == null).ToPostResponseModelQueryable(userRequestId: userId).ToListAsync();
         }
         public async Task<PostResponseModel?> GetById(Guid id, Guid? userId = null)
