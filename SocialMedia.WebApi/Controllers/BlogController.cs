@@ -65,6 +65,19 @@ namespace SocialMedia.WebApi.Controllers
             var blogs = await blogPostService.GetByParentId(parentId, userId);
             return Ok(blogs);
         }
+        [HttpGet("[action]")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Filter([FromQuery] string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return BadRequest("Query is required.");
+
+            var userId = GetUserId();
+            var posts = await blogPostService.GetByDescription(description: query, userRequestId: userId);
+
+            return Ok(posts);
+        }
+
         [HttpGet("[action]/{id}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetByUserId(Guid id)
