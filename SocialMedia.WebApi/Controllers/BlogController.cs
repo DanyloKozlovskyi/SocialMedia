@@ -80,6 +80,16 @@ namespace SocialMedia.WebApi.Controllers
 
         [HttpGet("[action]/{id}")]
         [AllowAnonymous]
+        public async Task<IActionResult> GetParents(Guid id)
+        {
+            var userId = GetUserId();
+
+            var parents = await blogPostService.GetParents(id, userRequestId: userId);
+            return Ok(parents);
+        }
+
+        [HttpGet("[action]/{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetByUserId(Guid id)
         {
             var userRequestId = GetUserId();

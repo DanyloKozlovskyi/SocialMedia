@@ -28,10 +28,34 @@ namespace SocialMedia.WebApi.Services
         }
         public async Task<IEnumerable<PostResponseModel>?> GetByDescription(string description, Guid? userRequestId = null)
         {
-            var blogs = await context.Blogs.Where(u => u.Description.ToLower().Contains(description.ToLower())).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
+            var blogs = await context.Blogs.Where(x => x.Description.ToLower().Contains(description.ToLower())).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
             return blogs;
         }
+        public async Task<ICollection<PostResponseModel>?> GetParents(Guid id, Guid? userRequestId = null)
+        {
+            var parents = new List<BlogPost>();
+            var currentPost = await context.Blogs.FindAsync(id);
 
+            while (currentPost?.ParentId != null)
+            {
+                currentPost = await context.Blogs.FindAsync(currentPost.ParentId.Value);
+                if (currentPost != null)
+                {
+                    parents.Add(currentPost);
+                }
+            }
+
+            parents.Reverse();
+
+            var responseModels = await Task.Run(() =>
+                parents
+                    .AsQueryable()
+                    .ToPostResponseModelQueryable(userRequestId)
+                    .ToList()
+            );
+
+            return responseModels;
+        }
         public async Task<IEnumerable<PostResponseModel>?> GetAll(Guid? userId = null)
         {
             return await context.Blogs.Where(x => x.ParentId == null).ToPostResponseModelQueryable(userRequestId: userId).ToListAsync();

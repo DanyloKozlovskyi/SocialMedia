@@ -55,28 +55,48 @@ public static class BlogPostExtension
             Image64 = post.Image64,
             PostedAt = post.PostedAt,
             UserId = post.UserId,
-            User = new UserResponseModel() { UserName = post.User.Name, Description = post.User.Description, Logo = post.User.Logo, Id = post.UserId },
-            LikeCount = post.Likes.Count(x => x.IsLiked),
+            User = post.User != null ? new UserResponseModel
+            {
+                UserName = post.User.Name,
+                Description = post.User.Description,
+                Logo = post.User.Logo,
+                Id = post.UserId
+            } : null,
+            LikeCount = post.Likes != null ? post.Likes.Count(x => x.IsLiked) : 0,
             Comments = post.Comments != null
-                ? post.Comments.Select(comment => new PostResponseModel
+            ? post.Comments.Select(comment => new PostResponseModel
+            {
+                Id = comment.Id,
+                Description = comment.Description,
+                Image64 = comment.Image64,
+                PostedAt = comment.PostedAt,
+                UserId = comment.UserId,
+                User = comment.User != null ? new UserResponseModel
                 {
-                    Id = comment.Id,
-                    Description = comment.Description,
-                    Image64 = comment.Image64,
-                    PostedAt = comment.PostedAt,
-                    UserId = comment.UserId,
-                    User = new UserResponseModel() { UserName = comment.User.Name, Description = comment.User.Description, Logo = comment.User.Logo, Id = comment.UserId },
-                    LikeCount = comment.Likes.Count(),
-                    ParentId = comment.ParentId,
-                    Comments = null, // Prevent deeper nesting of comments
-                    CommentCount = comment.Comments != null ? comment.Comments.Count() : 0,
-                    IsLiked = userRequestId != null ? comment.Likes.Any(x => x.UserId == userRequestId && x.IsLiked) : false,
-                    IsCommented = userRequestId != null ? comment.Comments.Any(x => x.UserId == userRequestId) : false
-                }).ToList()
-                : null,
+                    UserName = comment.User.Name,
+                    Description = comment.User.Description,
+                    Logo = comment.User.Logo,
+                    Id = comment.UserId
+                } : null,
+                LikeCount = comment.Likes != null ? comment.Likes.Count() : 0,
+                ParentId = comment.ParentId,
+                Comments = null, // Prevent deeper nesting of comments
+                CommentCount = comment.Comments != null ? comment.Comments.Count() : 0,
+                IsLiked = userRequestId != null && comment.Likes != null
+                    ? comment.Likes.Any(x => x.UserId == userRequestId && x.IsLiked)
+                    : false,
+                IsCommented = userRequestId != null && comment.Comments != null
+                    ? comment.Comments.Any(x => x.UserId == userRequestId)
+                    : false
+            }).ToList()
+            : null,
             CommentCount = post.Comments != null ? post.Comments.Count() : 0,
-            IsLiked = userRequestId != null ? post.Likes.Any(x => x.UserId == userRequestId && x.IsLiked) : false,
-            IsCommented = userRequestId != null ? post.Comments.Any(x => x.UserId == userRequestId) : false
+            IsLiked = userRequestId != null && post.Likes != null
+            ? post.Likes.Any(x => x.UserId == userRequestId && x.IsLiked)
+            : false,
+            IsCommented = userRequestId != null && post.Comments != null
+            ? post.Comments.Any(x => x.UserId == userRequestId)
+            : false
         });
     }
 }
