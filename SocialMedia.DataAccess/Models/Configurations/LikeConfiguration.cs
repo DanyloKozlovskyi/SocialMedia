@@ -14,6 +14,7 @@ public class LikeConfiguration : IEntityTypeConfiguration<Like>
         builder.HasKey(x => x.Id);
 
         builder.HasOne(x => x.User).WithMany(x => x.Likes);
-        builder.HasOne(x => x.Post).WithMany(x => x.Likes);       
+        builder.HasOne(x => x.Post).WithMany(x => x.Likes);
+        builder.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()").IsRequired();
     }
 }

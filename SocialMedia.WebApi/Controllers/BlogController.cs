@@ -40,7 +40,7 @@ namespace SocialMedia.WebApi.Controllers
         {
             var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            blogPost.PostedAt = DateTime.Now;
+            blogPost.PostedAt = DateTime.UtcNow;
             blogPost.UserId = userId;
             blogPost.Description = blogPost.Description.Trim();
 

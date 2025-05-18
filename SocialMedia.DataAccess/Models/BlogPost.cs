@@ -15,7 +15,7 @@ public class BlogPost
     public Guid Id { get; set; }
     public string? Description { get; set; }
     public string? Image64 { get; set; }
-    public DateTime PostedAt { get; set; }
+    public DateTime PostedAt { get; set; } = DateTime.UtcNow;
     [ForeignKey(nameof(ApplicationUser))]
     public Guid UserId { get; set; }
     public virtual ApplicationUser? User { get; set; }

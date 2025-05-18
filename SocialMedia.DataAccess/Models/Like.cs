@@ -18,7 +18,7 @@ public class Like
     [ForeignKey(nameof(BlogPost))]
     public Guid PostId { get; set; }
     public BlogPost? Post { get; set; }
-
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool IsLiked { get; set; } = true;
 }
 
