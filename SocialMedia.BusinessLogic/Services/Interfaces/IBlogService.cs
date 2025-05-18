@@ -5,7 +5,7 @@ namespace SocialMedia.WebApi.Services.Interfaces
 {
     public interface IBlogService
     {
-        Task<IEnumerable<PostResponseModel>?> GetAll(Guid? userId = null);
+        Task<IEnumerable<PostResponseModel>> GetAll(Guid? userId = null, int page = 1, int pageSize = 30);
         Task<PostResponseModel?> GetById(Guid id, Guid? userId = null);
         Task<ICollection<PostResponseModel>?> GetParents(Guid id, Guid? userRequestId = null);
         Task<IEnumerable<PostResponseModel>?> GetByDescription(string description, Guid? userRequestId = null);

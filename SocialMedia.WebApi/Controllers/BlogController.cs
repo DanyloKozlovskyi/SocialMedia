@@ -27,11 +27,11 @@ namespace SocialMedia.WebApi.Controllers
 
         [HttpGet("[action]")]
         [AllowAnonymous]
-        public async Task<IActionResult> All()
+        public async Task<IActionResult> All(int page = 1, int pageSize = 30)
         {
             var userId = GetUserId();
             
-            var blogs =  await blogPostService.GetAll(userId);
+            var blogs =  await blogPostService.GetAll(userId, page, pageSize);
             return Ok(blogs);
         }
         [HttpPost("[action]")]

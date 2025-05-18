@@ -56,9 +56,15 @@ namespace SocialMedia.WebApi.Services
 
             return responseModels;
         }
-        public async Task<IEnumerable<PostResponseModel>?> GetAll(Guid? userId = null)
+        public async Task<IEnumerable<PostResponseModel>> GetAll(Guid? userId = null, int page = 1, int pageSize = 30)
         {
-            return await context.Blogs.Where(x => x.ParentId == null).ToPostResponseModelQueryable(userRequestId: userId).ToListAsync();
+            return await context.Blogs
+                .Where(x => x.ParentId == null)
+                .OrderByDescending(x => x.PostedAt)
+                .ToPostResponseModelQueryable(userRequestId: userId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
         }
         public async Task<PostResponseModel?> GetById(Guid id, Guid? userId = null)
         {
