@@ -58,13 +58,16 @@ namespace SocialMedia.WebApi.Controllers
 
         [HttpGet("[action]")]
         [AllowAnonymous]
-        public async Task<IActionResult> FilterUsers([FromQuery] string query)
+        public async Task<IActionResult> FilterUsers([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 30)
         {
             if (string.IsNullOrWhiteSpace(query))
                 return BadRequest("Query is required.");
 
             var users = await userManager.Users
                 .Where(u => u.Name.ToLower().Contains(query.ToLower()))
+                .OrderByDescending(u =>( u.Likes.Count() * 0.1) + u.Posts.Count())
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             return Ok(users);

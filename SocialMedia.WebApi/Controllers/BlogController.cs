@@ -75,13 +75,13 @@ namespace SocialMedia.WebApi.Controllers
         }
         [HttpGet("[action]")]
         [AllowAnonymous]
-        public async Task<IActionResult> Filter([FromQuery] string query)
+        public async Task<IActionResult> Filter([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 30)
         {
             if (string.IsNullOrWhiteSpace(query))
                 return BadRequest("Query is required.");
 
             var userId = GetUserId();
-            var posts = await blogPostService.GetByDescription(description: query, userRequestId: userId);
+            var posts = await blogPostService.GetByDescription(description: query, userRequestId: userId, page, pageSize);
 
             return Ok(posts);
         }
