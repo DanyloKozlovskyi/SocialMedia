@@ -35,7 +35,7 @@ public class BlogService : IBlogService
     }
     public async Task<IEnumerable<PostResponseModel>?> GetByDescription(string description, Guid? userRequestId = null, int page=1, int pageSize = 30)
     {
-        var blogs = await context.Blogs.Where(x => x.Description.ToLower().Contains(description.ToLower())).OrderByDescending(x => (x.Likes.Count() * 0.1) + x.Comments.Count()).Skip((page - 1) * pageSize).Take(pageSize).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
+        var blogs = await context.Blogs.Where(x => x.Description.ToLower().Contains(description.ToLower())).OrderByDescending(x => (x.Likes.Count(x => x.IsLiked) * 0.1) + x.Comments.Count()).Skip((page - 1) * pageSize).Take(pageSize).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
         return blogs;
     }
     public async Task<IEnumerable<PostResponseModel>?> GetParents(Guid id, Guid? userRequestId = null)
