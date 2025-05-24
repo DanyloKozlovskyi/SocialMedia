@@ -29,14 +29,9 @@ namespace SocialMedia.WebApi.Services
 
             Claim[] claims = new Claim[]
                 {
-					//JwtRegisteredClaimNames.Sub - user identity
 					new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-					//JwtRegisteredClaimNames.Jti - unique id for the token
 					new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-					//JwtRegisteredClaimNames.Iat - issued at
-					//couldn't authorize if iat is string it must be int
 					new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.Now.ToUnixTimeSeconds().ToString()),
-					// further fields are optional
 					new Claim(ClaimTypes.NameIdentifier, user.Email),
                     new Claim(ClaimTypes.Name, user.UserName),
                     new Claim(ClaimTypes.Email, user.Email)
