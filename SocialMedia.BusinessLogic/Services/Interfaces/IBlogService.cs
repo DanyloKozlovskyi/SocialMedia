@@ -11,7 +11,7 @@ namespace SocialMedia.WebApi.Services.Interfaces
         Task<PostResponseModel?> GetById(Guid id, Guid? userId = null);
         Task<ICollection<PostResponseModel>?> GetParents(Guid id, Guid? userRequestId = null);
         Task<IEnumerable<PostResponseModel>?> GetByDescription(string description, Guid? userRequestId = null);
-        Task<IEnumerable<PostResponseModel>?> GetByUserId(Guid userId, Guid? userRequestId = null);
+        Task<IEnumerable<PostResponseModel>?> GetByUserId(Guid userId, Guid? userRequestId = null, int page = 1, int pageSize = 30);
         Task<BlogPost?> Create(BlogPost blogPost);
         Task<Like?> GetLike(Guid? postId, Guid? userId);
         Task<IEnumerable<Like>?> GetLikes(Guid? postId);

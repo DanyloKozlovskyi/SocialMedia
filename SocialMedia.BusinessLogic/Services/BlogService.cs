@@ -121,9 +121,9 @@ public class BlogService : IBlogService
         return await context.Blogs.Where(x => x.ParentId == parentId).ToPostResponseModelQueryable(userRequestId: userId).ToListAsync();
     }
 
-    public async Task<IEnumerable<PostResponseModel>?> GetByUserId(Guid userId, Guid? userRequestId = null)
+    public async Task<IEnumerable<PostResponseModel>?> GetByUserId(Guid userId, Guid? userRequestId = null, int page = 1, int pageSize = 30)
     {
-        return await context.Blogs.Where(x => x.UserId == userId).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
+        return await context.Blogs.Where(x => x.UserId == userId).OrderByDescending(x => x.PostedAt).Skip((page - 1) * pageSize).Take(pageSize).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
     }
 
     public async Task<Like?> GetLike(Guid? postId, Guid? userId)

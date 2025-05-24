@@ -90,11 +90,11 @@ namespace SocialMedia.WebApi.Controllers
 
         [HttpGet("[action]/{id}")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetByUserId(Guid id)
+        public async Task<IActionResult> GetByUserId(Guid id, int page = 1, int pageSize = 30)
         {
             var userRequestId = GetUserId();
 
-            var blogs = await blogPostService.GetByUserId(id, userRequestId);
+            var blogs = await blogPostService.GetByUserId(id, userRequestId, page, pageSize);
             return Ok(blogs);
         }
         [HttpPut("{id}/[action]")]
