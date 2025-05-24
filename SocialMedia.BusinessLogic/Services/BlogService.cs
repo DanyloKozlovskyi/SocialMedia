@@ -38,30 +38,25 @@ public class BlogService : IBlogService
         var blogs = await context.Blogs.Where(x => x.Description.ToLower().Contains(description.ToLower())).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
         return blogs;
     }
-    public async Task<ICollection<PostResponseModel>?> GetParents(Guid id, Guid? userRequestId = null)
+    public async Task<IEnumerable<PostResponseModel>?> GetParents(Guid id, Guid? userRequestId = null)
     {
-        var parents = new List<BlogPost>();
-        var currentPost = await context.Blogs.FindAsync(id);
-
-        while (currentPost?.ParentId != null)
+        var idList = new List<Guid>();
+        var cur = await context.Blogs.FindAsync(id);
+        while (cur?.ParentId != null)
         {
-            currentPost = await context.Blogs.FindAsync(currentPost.ParentId.Value);
-            if (currentPost != null)
-            {
-                parents.Add(currentPost);
-            }
+            idList.Add(cur.ParentId.Value);
+            cur = await context.Blogs.FindAsync(cur.ParentId.Value);
         }
 
-        parents.Reverse();
+        var postsWithUser = await context.Blogs
+            .Where(b => idList.Contains(b.Id))
+            .Include(b => b.User)
+            .Include(b => b.Likes)
+            .Include(b => b.Comments).ThenInclude(c => c.User)
+            .ToPostResponseModelQueryable(userRequestId)
+            .ToListAsync();
 
-        var responseModels = await Task.Run(() =>
-            parents
-                .AsQueryable()
-                .ToPostResponseModelQueryable(userRequestId)
-                .ToList()
-        );
-
-        return responseModels;
+        return postsWithUser.OrderBy(b => idList.IndexOf(b.Id));
     }
     public async Task<IEnumerable<PostResponseModel>> GetAll(Guid? userId = null, int page = 1, int pageSize = 30)
     {
@@ -116,9 +111,9 @@ public class BlogService : IBlogService
     {
         return await context.Blogs.ToPostResponseModelQueryable(userRequestId: userId).FirstOrDefaultAsync(x => x.Id == id);
     }
-    public async Task<IEnumerable<PostResponseModel>?> GetByParentId(Guid parentId, Guid? userId = null)
+    public async Task<IEnumerable<PostResponseModel>?> GetByParentId(Guid parentId, Guid? userId = null, int page = 1, int pageSize = 30)
     {
-        return await context.Blogs.Where(x => x.ParentId == parentId).ToPostResponseModelQueryable(userRequestId: userId).ToListAsync();
+        return await context.Blogs.Where(x => x.ParentId == parentId).OrderByDescending(x => x.PostedAt).Skip((page - 1) * pageSize).Take(pageSize).ToPostResponseModelQueryable(userRequestId: userId).ToListAsync();
     }
 
     public async Task<IEnumerable<PostResponseModel>?> GetByUserId(Guid userId, Guid? userRequestId = null, int page = 1, int pageSize = 30)

@@ -58,12 +58,20 @@ namespace SocialMedia.WebApi.Controllers
         }
         [HttpGet("[action]/{parentId}")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetByParentId(Guid parentId)
+        public async Task<IActionResult> GetByParentId(Guid parentId, int page = 1, int pageSize = 30)
         {
             var userId = GetUserId();
+            try
+            {
+                var blogs = await blogPostService.GetByParentId(parentId, userId, page, pageSize);
 
-            var blogs = await blogPostService.GetByParentId(parentId, userId);
-            return Ok(blogs);
+                return Ok(blogs);
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.Message);
+                return Problem(exc.Message);
+            }
         }
         [HttpGet("[action]")]
         [AllowAnonymous]
@@ -83,9 +91,16 @@ namespace SocialMedia.WebApi.Controllers
         public async Task<IActionResult> GetParents(Guid id)
         {
             var userId = GetUserId();
-
-            var parents = await blogPostService.GetParents(id, userRequestId: userId);
-            return Ok(parents);
+            try
+            {
+                var parents = await blogPostService.GetParents(id, userRequestId: userId);
+                return Ok(parents);
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.Message);
+                return Problem(exc.Message);
+            }
         }
 
         [HttpGet("[action]/{id}")]
