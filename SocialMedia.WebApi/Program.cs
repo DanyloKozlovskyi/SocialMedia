@@ -95,6 +95,15 @@ builder.Services.Configure<BlogPostSeedOptions>(opt =>
 
 builder.Services.AddScoped<IBlogPostSeeder, BlogPostSeeder>();
 
+builder.Services.Configure<CommentSeedOptions>(opt =>
+{
+    opt.ImagesDirectory = Path.Combine(builder.Environment.WebRootPath, "comment-images");
+    opt.CommentCount = 800;
+    opt.ImageProbability = 0.25;
+});
+
+builder.Services.AddScoped<ICommentSeeder, CommentSeeder>();
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -120,7 +129,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -143,6 +151,8 @@ using (var scope = app.Services.CreateScope())
 {
     await scope.ServiceProvider.GetRequiredService<IBlogPostSeeder>()
                                .SeedAsync(300);
+    
+    await scope.ServiceProvider.GetRequiredService<ICommentSeeder>().SeedAsync();
 }
 
 app.Run();

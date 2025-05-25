@@ -25,7 +25,7 @@ public sealed class BlogPostSeeder : IBlogPostSeeder
     public async Task SeedAsync(int targetCount = 300, CancellationToken ct = default)
     {
         // don’t over-seed
-        if (await _ctx.Blogs.CountAsync(ct) > targetCount) return;
+        if (await _ctx.Blogs.CountAsync(ct) >= targetCount) return;
 
         var userIds = await _ctx.Users.Select(u => u.Id).ToListAsync(ct);
         if (userIds.Count == 0) throw new InvalidOperationException("No users in DB!");
