@@ -87,6 +87,14 @@ builder.Services.Configure<UserSeedOptions>(opt =>
 });
 builder.Services.AddScoped<IUserSeeder, CsvUserSeeder>();
 
+builder.Services.Configure<BlogPostSeedOptions>(opt =>
+{
+    opt.ImagesDirectory = Path.Combine(builder.Environment.WebRootPath, "posts");
+    opt.ImagesCsvPath = Path.Combine(opt.ImagesDirectory, "labels.csv");
+});
+
+builder.Services.AddScoped<IBlogPostSeeder, BlogPostSeeder>();
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -129,6 +137,12 @@ using (var scope = app.Services.CreateScope())
 {
     var seeder = scope.ServiceProvider.GetRequiredService<IUserSeeder>();
     await seeder.SeedAsync();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    await scope.ServiceProvider.GetRequiredService<IBlogPostSeeder>()
+                               .SeedAsync(300);
 }
 
 app.Run();
