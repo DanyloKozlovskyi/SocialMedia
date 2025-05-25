@@ -11,6 +11,9 @@ using SocialMedia.DataAccess.Identity;
 using SocialMedia.WebApi.Services;
 using SocialMedia.WebApi.Services.Interfaces;
 using SocialMedia.BusinessLogic.Utilities;
+using SocialMedia.DataAccess.Seeding.Interfaces;
+using SocialMedia.DataAccess.Seeding.Options;
+using SocialMedia.DataAccess.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,6 +81,12 @@ builder.Services.AddScoped<IBlogService, BlogService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
+builder.Services.Configure<UserSeedOptions>(opt =>
+{
+    opt.AvatarsDirectory = Path.Combine(builder.Environment.WebRootPath, "avatars");
+});
+builder.Services.AddScoped<IUserSeeder, CsvUserSeeder>();
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -114,6 +123,12 @@ using (var scope = app.Services.CreateScope())
     {
         Console.WriteLine(exc);
     }
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<IUserSeeder>();
+    await seeder.SeedAsync();
 }
 
 app.Run();
