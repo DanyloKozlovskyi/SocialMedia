@@ -60,6 +60,8 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddAuthorization();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -104,7 +106,13 @@ builder.Services.Configure<CommentSeedOptions>(opt =>
 
 builder.Services.AddScoped<ICommentSeeder, CommentSeeder>();
 
-builder.Services.AddAuthorization();
+builder.Services.Configure<LikeSeedOptions>(opt =>
+{
+    opt.MinPerPost = 0;
+    opt.MaxPerPost = 30;
+});
+
+builder.Services.AddScoped<ILikeSeeder, LikeSeeder>();
 
 var app = builder.Build();
 
@@ -149,10 +157,9 @@ using (var scope = app.Services.CreateScope())
 
 using (var scope = app.Services.CreateScope())
 {
-    await scope.ServiceProvider.GetRequiredService<IBlogPostSeeder>()
-                               .SeedAsync(300);
-    
+    await scope.ServiceProvider.GetRequiredService<IBlogPostSeeder>().SeedAsync(300);
     await scope.ServiceProvider.GetRequiredService<ICommentSeeder>().SeedAsync();
+    await scope.ServiceProvider.GetRequiredService<ILikeSeeder>().SeedAsync();
 }
 
 app.Run();
