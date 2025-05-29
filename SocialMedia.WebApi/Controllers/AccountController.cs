@@ -58,13 +58,16 @@ namespace SocialMedia.WebApi.Controllers
 
         [HttpGet("[action]")]
         [AllowAnonymous]
-        public async Task<IActionResult> FilterUsers([FromQuery] string query)
+        public async Task<IActionResult> FilterUsers([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 30)
         {
             if (string.IsNullOrWhiteSpace(query))
                 return BadRequest("Query is required.");
 
             var users = await userManager.Users
                 .Where(u => u.Name.ToLower().Contains(query.ToLower()))
+                .OrderByDescending(u =>( u.Likes.Count() * 0.1) + u.Posts.Count())
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             return Ok(users);
@@ -93,7 +96,7 @@ namespace SocialMedia.WebApi.Controllers
             return Ok("User updated successfully");
         }
 
-        [HttpPost("register")]
+        [HttpPost("[action]")]
         [AllowAnonymous]
         public async Task<IActionResult> Register(RegisterDto registerDto)
         {
@@ -136,8 +139,8 @@ namespace SocialMedia.WebApi.Controllers
             return Problem(errorMessage);
         }
 
-        [HttpGet]
-        [AllowAnonymous]
+        [HttpGet("[action]")]
+        [Authorize]
         public async Task<IActionResult> IsEmailAlreadyRegistered(string email)
         {
             ApplicationUser? user = await userManager.FindByEmailAsync(email);
@@ -149,7 +152,7 @@ namespace SocialMedia.WebApi.Controllers
             return Ok(false);
         }
 
-        [HttpPost("login")]
+        [HttpPost("[action]")]
         [AllowAnonymous]
         public async Task<IActionResult> Login(LoginDto loginDTO)
         {
@@ -189,21 +192,22 @@ namespace SocialMedia.WebApi.Controllers
             return Problem("Invalid email or password");
         }
 
-        [HttpGet("logout")]
-        public async Task<IActionResult> GetLogout()
+        [HttpGet("[action]")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
         {
             await signInManager.SignOutAsync();
 
             return NoContent();
         }
 
-        [HttpPost("refresh")]
+        [HttpPost("[action]")]
         [AllowAnonymous]
         public async Task<IActionResult> Refresh(TokenModel tokenModel)
         {
             if (tokenModel == null)
             {
-                return BadRequest("Invalid client request");
+                return Unauthorized("Invalid client request");
             }
 
             string? token = tokenModel.Token;
@@ -212,7 +216,7 @@ namespace SocialMedia.WebApi.Controllers
             ClaimsPrincipal? principal = jwtService.GetPrincipalFromJwtToken(token);
             if (principal == null)
             {
-                return BadRequest("Invalid access token");
+                return Unauthorized("Invalid access token");
             }
 
             string? email = principal.FindFirstValue(ClaimTypes.Email);
@@ -221,7 +225,7 @@ namespace SocialMedia.WebApi.Controllers
 
             if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpirationDateTime <= DateTime.UtcNow)
             {
-                return BadRequest("Invalid refresh token");
+                return Unauthorized("Invalid refresh token");
             }
 
             AuthenticationResponse authenticationResponse = jwtService.CreateJwtToken(user);

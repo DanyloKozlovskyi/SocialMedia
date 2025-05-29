@@ -11,6 +11,9 @@ using SocialMedia.DataAccess.Identity;
 using SocialMedia.WebApi.Services;
 using SocialMedia.WebApi.Services.Interfaces;
 using SocialMedia.BusinessLogic.Utilities;
+using SocialMedia.DataAccess.Seeding.Interfaces;
+using SocialMedia.DataAccess.Seeding.Options;
+using SocialMedia.DataAccess.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,6 +60,8 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddAuthorization();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -78,7 +83,36 @@ builder.Services.AddScoped<IBlogService, BlogService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-builder.Services.AddAuthorization();
+builder.Services.Configure<UserSeedOptions>(opt =>
+{
+    opt.AvatarsDirectory = Path.Combine(builder.Environment.WebRootPath, "avatars");
+});
+builder.Services.AddScoped<IUserSeeder, CsvUserSeeder>();
+
+builder.Services.Configure<BlogPostSeedOptions>(opt =>
+{
+    opt.ImagesDirectory = Path.Combine(builder.Environment.WebRootPath, "posts");
+    opt.ImagesCsvPath = Path.Combine(opt.ImagesDirectory, "labels.csv");
+});
+
+builder.Services.AddScoped<IBlogPostSeeder, BlogPostSeeder>();
+
+builder.Services.Configure<CommentSeedOptions>(opt =>
+{
+    opt.ImagesDirectory = Path.Combine(builder.Environment.WebRootPath, "comment-images");
+    opt.CommentCount = 800;
+    opt.ImageProbability = 0.25;
+});
+
+builder.Services.AddScoped<ICommentSeeder, CommentSeeder>();
+
+builder.Services.Configure<LikeSeedOptions>(opt =>
+{
+    opt.MinPerPost = 0;
+    opt.MaxPerPost = 30;
+});
+
+builder.Services.AddScoped<ILikeSeeder, LikeSeeder>();
 
 var app = builder.Build();
 
@@ -103,7 +137,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -114,6 +147,19 @@ using (var scope = app.Services.CreateScope())
     {
         Console.WriteLine(exc);
     }
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<IUserSeeder>();
+    await seeder.SeedAsync();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    await scope.ServiceProvider.GetRequiredService<IBlogPostSeeder>().SeedAsync(300);
+    await scope.ServiceProvider.GetRequiredService<ICommentSeeder>().SeedAsync();
+    await scope.ServiceProvider.GetRequiredService<ILikeSeeder>().SeedAsync();
 }
 
 app.Run();
