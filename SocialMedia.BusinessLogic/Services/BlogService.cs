@@ -75,24 +75,28 @@ public class BlogService : IBlogService
 		{
 			var now = DateTime.UtcNow;
 
-			postIds = await baseQuery
-			.Select(p => new
-			{
-				p.Id,
-				p.PostedAt,
-				LikesCount = p.Likes.Count(),
-				CommentsCount = p.Comments.Count()
-			})
-			.Select(x => new
-			{
-				x.Id,
-				Score = (x.LikesCount * likeWeight + x.CommentsCount * commentWeight) * Math.Pow(1 - decayPerDayRate, EF.Functions.DateDiffSecond(x.PostedAt, now) / SECONDS_IN_DAY)
-			})
-			.OrderByDescending(x => x.Score)
-			.Skip((page - 1) * pageSize)
-			.Take(pageSize)
-			.Select(x => x.Id)
-			.ToListAsync();
+			var paged = await context.Blogs
+				.AsNoTracking()
+				.Select(p => new
+				{
+					Post = p,
+					Likes = p.Likes.Count(),
+					Comms = p.Comments.Count(),
+					AgeDays = EF.Functions.DateDiffSecond(p.PostedAt, now) / (double)SECONDS_IN_DAY
+				})
+				.Select(x => new
+				{
+					x.Post,
+					Score = (x.Likes * likeWeight + x.Comms * commentWeight) * Math.Pow(1 - decayPerDayRate, x.AgeDays)
+				})
+				.OrderByDescending(x => x.Score)
+				.Skip((page - 1) * pageSize)
+				.Take(pageSize)
+				.Select(x => x.Post)
+				.ToPostResponseModelQueryable(userRequestId: userId)
+				.ToListAsync();
+
+			return paged;
 		}
 
 		var posts = await context.Blogs
