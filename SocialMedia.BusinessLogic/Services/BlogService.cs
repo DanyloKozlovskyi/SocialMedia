@@ -65,11 +65,6 @@ public class BlogService : IBlogService
 
 		return postsWithUser.OrderBy(b => idList.IndexOf(b.Id));
 	}
-	public async Task RescoreTopNAsync(RedisKey[] keys, RedisValue[] argv)
-	{
-		// This will EVALSHA under the covers
-		await redis.ExecuteRescoreTopNAsync(keys: keys, values: argv);
-	}
 	public async Task<IEnumerable<PostResponseModel>> GetAll(Guid? userId = null, int page = 1, int pageSize = 30)
 	{
 		var baseQuery = context.Blogs.Where(x => x.ParentId == null);
@@ -137,19 +132,28 @@ public class BlogService : IBlogService
 					.Select(rv => (RedisKey)$"post:{rv}")
 					.ToArray();
 
-				// ARGV: [ nowTs, likeW, commentW, decayPerDay ]
-				var argv = new RedisValue[postIds.Count * 2];
-				for (int i = 0; i < postIds.Count; i++)
+				var argv = new RedisValue[postIds.Count() * 2];
+				for (int i = 0; i < postIds.Count(); i++)
 				{
-					argv[i * 2] = postIds.Count - i;   // score
+					argv[i * 2] = i;   // score
 					argv[i * 2 + 1] = postIds[i].ToString();      // id
 				}
 
-				await RescoreTopNAsync(keys: Array.Empty<RedisKey>(), argv);
+				await redis.ExecuteRescoreTopNAsync(keys: Array.Empty<RedisKey>(), argv);
+				postIds = postIds.Take(pageSize).ToList();
 			}
 			else
 			{
+				var argv = new RedisValue[2];
+				argv[0] = pageSize;
+				int lastScore = (page * pageSize) % (CACHED_PAGES * pageSize);
+				lastScore = lastScore == 0
+					? CACHED_PAGES * pageSize
+					: lastScore;
 
+				argv[1] = lastScore;
+
+				postIds = await redis.ExecuteRetrieveTopNAsync(keys: Array.Empty<RedisKey>(), argv);
 			}
 		}
 
@@ -158,7 +162,8 @@ public class BlogService : IBlogService
 			.ToPostResponseModelQueryable(userRequestId: userId)
 			.ToListAsync();
 
-		return posts.OrderBy(x => postIds.IndexOf(x.Id));
+		var result = posts.OrderByDescending(x => postIds.IndexOf(x.Id));
+		return result;
 	}
 	public async Task<PostResponseModel?> GetById(Guid id, Guid? userId = null)
 	{
