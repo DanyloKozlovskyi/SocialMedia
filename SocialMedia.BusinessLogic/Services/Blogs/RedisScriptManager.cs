@@ -8,6 +8,7 @@ public class RedisScriptManager
 {
 	private readonly IConnectionMultiplexer _mux;
 	private readonly LuaScriptOptions _luaOptions;
+	private const string POSTS_NAMESPACE = "posts:*";
 	public RedisScriptManager(IConnectionMultiplexer mux, IOptions<LuaScriptOptions> luaOptions)
 	{
 		_mux = mux;
@@ -28,6 +29,27 @@ public class RedisScriptManager
 		var guids = raw.Select(v => Guid.Parse(v)).ToList();
 		return guids;
 
+	}
+	public async Task ExecuteClearAsync()
+	{
+		var server = GetServer();
+
+		var db = _mux.GetDatabase();
+
+		await foreach (var key in server.KeysAsync(
+			database: db.Database,
+			pattern: POSTS_NAMESPACE,
+			pageSize: 500))
+		{
+			await db.KeyDeleteAsync(key).ConfigureAwait(false);
+		}
+	}
+	private IServer GetServer()
+	{
+		var endpoint = _mux.GetEndPoints().FirstOrDefault()
+					   ?? throw new InvalidOperationException("No endpoints configured on the multiplexer.");
+
+		return _mux.GetServer(endpoint);
 	}
 	private async Task<RedisResult> ExecuteScriptAtPathAsync(string scriptPath, RedisKey[] keys, RedisValue[] values)
 	{

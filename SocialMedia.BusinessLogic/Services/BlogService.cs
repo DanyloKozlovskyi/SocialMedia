@@ -73,33 +73,11 @@ public class BlogService : IBlogService
 
 		if (userId != null)
 		{
-			// Use recommendation system for personalized results
-			postIds = await ComputeRecommendedPostIdsAsync(
-				baseQuery, userId.Value, page, pageSize);
+			postIds = await ComputeRecommendedPostIdsAsync(baseQuery, userId.Value, page, pageSize);
 		}
 		else
 		{
 			var now = DateTime.UtcNow;
-
-			//postIds = await baseQuery
-			//	.AsNoTracking()
-			//	.Select(p => new
-			//	{
-			//		p.Id,
-			//		p.PostedAt,
-			//		LikesCount = p.Likes.Count(),
-			//		CommentsCount = p.Comments.Count()
-			//	})
-			//	.Select(x => new
-			//	{
-			//		x.Id,
-			//		Score = (x.LikesCount * likeWeight + x.CommentsCount * commentWeight) * Math.Pow(1 - decayPerDayRate, EF.Functions.DateDiffSecond(x.PostedAt, now) / SECONDS_IN_DAY)
-			//	})
-			//	.OrderByDescending(x => x.Score)
-			//	.Skip((page - 1) * pageSize)
-			//	.Take(pageSize)
-			//	.Select(x => x.Id)
-			//	.ToListAsync();
 
 			postIds = new List<Guid>();
 
@@ -127,7 +105,6 @@ public class BlogService : IBlogService
 				.Select(x => x.Id)
 				.ToListAsync();
 
-				// build your KEYS: [ "post:<id1>", "post:<id2>", … ]
 				var keys = postIds
 					.Select(rv => (RedisKey)$"post:{rv}")
 					.ToArray();
@@ -135,10 +112,11 @@ public class BlogService : IBlogService
 				var argv = new RedisValue[postIds.Count() * 2];
 				for (int i = 0; i < postIds.Count(); i++)
 				{
-					argv[i * 2] = i;   // score
-					argv[i * 2 + 1] = postIds[i].ToString();      // id
+					argv[i * 2] = i;
+					argv[i * 2 + 1] = postIds[i].ToString();
 				}
 
+				await redis.ExecuteClearAsync();
 				await redis.ExecuteRescoreTopNAsync(keys: Array.Empty<RedisKey>(), argv);
 				postIds = postIds.Take(pageSize).ToList();
 			}
@@ -146,12 +124,12 @@ public class BlogService : IBlogService
 			{
 				var argv = new RedisValue[2];
 				argv[0] = pageSize;
-				int lastScore = (page * pageSize) % (CACHED_PAGES * pageSize);
-				lastScore = lastScore == 0
-					? CACHED_PAGES * pageSize
-					: lastScore;
+				int firstScore = ((page - 1) * pageSize) % (CACHED_PAGES * pageSize);
+				//lastScore = lastScore == 0
+				//	? CACHED_PAGES * pageSize
+				//	: lastScore;
 
-				argv[1] = lastScore;
+				argv[1] = firstScore;
 
 				postIds = await redis.ExecuteRetrieveTopNAsync(keys: Array.Empty<RedisKey>(), argv);
 			}
@@ -162,7 +140,7 @@ public class BlogService : IBlogService
 			.ToPostResponseModelQueryable(userRequestId: userId)
 			.ToListAsync();
 
-		var result = posts.OrderByDescending(x => postIds.IndexOf(x.Id));
+		var result = posts.OrderBy(x => postIds.IndexOf(x.Id));
 		return result;
 	}
 	public async Task<PostResponseModel?> GetById(Guid id, Guid? userId = null)
