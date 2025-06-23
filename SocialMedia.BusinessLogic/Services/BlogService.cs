@@ -5,10 +5,12 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.ML;
 using SocialMedia.BusinessLogic.Dtos;
 using SocialMedia.BusinessLogic.Recommendation.Dtos;
+using SocialMedia.BusinessLogic.Services.Blogs;
 using SocialMedia.BusinessLogic.Utilities;
 using SocialMedia.DataAccess;
 using SocialMedia.DataAccess.Models;
 using SocialMedia.WebApi.Services.Interfaces;
+using StackExchange.Redis;
 using System.Security.Claims;
 
 namespace SocialMedia.WebApi.Services;
@@ -21,11 +23,15 @@ public class BlogService : IBlogService
 	private const float commentWeight = 0.1f;
 	private const float decayPerDayRate = 0.001f;
 	private const float SECONDS_IN_DAY = 86400.0f;
+	private readonly RedisScriptManager redis;
+	private const string ZSET_KEY = "posts:byActivity";
+	private const int CACHED_PAGES = 10;
 
-	public BlogService(SocialMediaDbContext dbContext, IMapper mapper)
+	public BlogService(SocialMediaDbContext dbContext, IMapper mapper, RedisScriptManager redis)
 	{
-		context = dbContext;
+		this.context = dbContext;
 		this.mapper = mapper;
+		this.redis = redis;
 	}
 
 	public async Task<BlogPost?> Create(BlogPost blogPost)
@@ -59,6 +65,11 @@ public class BlogService : IBlogService
 
 		return postsWithUser.OrderBy(b => idList.IndexOf(b.Id));
 	}
+	public async Task RescoreTopNAsync(RedisKey[] keys, RedisValue[] argv)
+	{
+		// This will EVALSHA under the covers
+		await redis.ExecuteRescoreTopNAsync(keys: keys, values: argv);
+	}
 	public async Task<IEnumerable<PostResponseModel>> GetAll(Guid? userId = null, int page = 1, int pageSize = 30)
 	{
 		var baseQuery = context.Blogs.Where(x => x.ParentId == null);
@@ -75,28 +86,71 @@ public class BlogService : IBlogService
 		{
 			var now = DateTime.UtcNow;
 
-			var paged = await context.Blogs
+			//postIds = await baseQuery
+			//	.AsNoTracking()
+			//	.Select(p => new
+			//	{
+			//		p.Id,
+			//		p.PostedAt,
+			//		LikesCount = p.Likes.Count(),
+			//		CommentsCount = p.Comments.Count()
+			//	})
+			//	.Select(x => new
+			//	{
+			//		x.Id,
+			//		Score = (x.LikesCount * likeWeight + x.CommentsCount * commentWeight) * Math.Pow(1 - decayPerDayRate, EF.Functions.DateDiffSecond(x.PostedAt, now) / SECONDS_IN_DAY)
+			//	})
+			//	.OrderByDescending(x => x.Score)
+			//	.Skip((page - 1) * pageSize)
+			//	.Take(pageSize)
+			//	.Select(x => x.Id)
+			//	.ToListAsync();
+
+			postIds = new List<Guid>();
+
+			if ((page - 1) % CACHED_PAGES == 0)
+			{
+				var topCount = CACHED_PAGES * pageSize;
+
+				postIds = await baseQuery
 				.AsNoTracking()
 				.Select(p => new
 				{
-					Post = p,
-					Likes = p.Likes.Count(),
-					Comms = p.Comments.Count(),
-					AgeDays = EF.Functions.DateDiffSecond(p.PostedAt, now) / (double)SECONDS_IN_DAY
+					p.Id,
+					p.PostedAt,
+					LikesCount = p.Likes.Count(),
+					CommentsCount = p.Comments.Count()
 				})
 				.Select(x => new
 				{
-					x.Post,
-					Score = (x.Likes * likeWeight + x.Comms * commentWeight) * Math.Pow(1 - decayPerDayRate, x.AgeDays)
+					x.Id,
+					Score = (x.LikesCount * likeWeight + x.CommentsCount * commentWeight) * Math.Pow(1 - decayPerDayRate, EF.Functions.DateDiffSecond(x.PostedAt, now) / SECONDS_IN_DAY)
 				})
 				.OrderByDescending(x => x.Score)
 				.Skip((page - 1) * pageSize)
-				.Take(pageSize)
-				.Select(x => x.Post)
-				.ToPostResponseModelQueryable(userRequestId: userId)
+				.Take(topCount)
+				.Select(x => x.Id)
 				.ToListAsync();
 
-			return paged;
+				// build your KEYS: [ "post:<id1>", "post:<id2>", … ]
+				var keys = postIds
+					.Select(rv => (RedisKey)$"post:{rv}")
+					.ToArray();
+
+				// ARGV: [ nowTs, likeW, commentW, decayPerDay ]
+				var argv = new RedisValue[postIds.Count * 2];
+				for (int i = 0; i < postIds.Count; i++)
+				{
+					argv[i * 2] = postIds.Count - i;   // score
+					argv[i * 2 + 1] = postIds[i].ToString();      // id
+				}
+
+				await RescoreTopNAsync(keys: Array.Empty<RedisKey>(), argv);
+			}
+			else
+			{
+
+			}
 		}
 
 		var posts = await context.Blogs
