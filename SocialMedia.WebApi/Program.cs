@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SocialMedia.BusinessLogic.Services.Blogs;
-using SocialMedia.BusinessLogic.Services.Blogs.Options;
+using SocialMedia.BusinessLogic.Services.Blog.Redis;
+using SocialMedia.BusinessLogic.Services.Blog.Redis.Options;
 using SocialMedia.BusinessLogic.Utilities;
 using SocialMedia.DataAccess;
 using SocialMedia.DataAccess.Identity;
@@ -112,6 +112,9 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 	var configuration = builder.Configuration["Redis:ConnectionString"];
 	return ConnectionMultiplexer.Connect(configuration);
 });
+
+builder.Services.AddSingleton<CacheService>();
+builder.Services.AddHostedService<CacheService>();
 
 builder.Services.Configure<LuaScriptOptions>(builder.Configuration.GetSection("LuaScriptOptions"));
 

@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
-using SocialMedia.BusinessLogic.Services.Blogs.Options;
+using SocialMedia.BusinessLogic.Services.Blog.Redis.Options;
 using StackExchange.Redis;
 
-namespace SocialMedia.BusinessLogic.Services.Blogs;
+namespace SocialMedia.BusinessLogic.Services.Blog.Redis;
 
 public class RedisScriptManager
 {
@@ -17,15 +17,15 @@ public class RedisScriptManager
 	/// <summary>
 	/// Executes the RescoreTopN Lua script asynchronously, given keys and args.
 	/// </summary>
-	public async Task ExecuteRescoreTopNAsync(RedisKey[] keys, RedisValue[] values)
+	public async Task ExecuteRescoreTopNAsync(RedisValue[] values)
 	{
 		var scriptPath = _luaOptions.ScriptsFolder + "." + _luaOptions.RescoreTopNFile;
-		var result = await ExecuteScriptAtPathAsync(scriptPath, keys, values);
+		var result = await ExecuteScriptAtPathAsync(scriptPath, keys: Array.Empty<RedisKey>(), values);
 	}
-	public async Task<List<Guid>> ExecuteRetrieveTopNAsync(RedisKey[] keys, RedisValue[] values)
+	public async Task<List<Guid>> ExecuteRetrieveTopNAsync(RedisValue[] values)
 	{
 		var scriptPath = _luaOptions.ScriptsFolder + "." + _luaOptions.RetrieveTopNFile;
-		var raw = (RedisValue[])await ExecuteScriptAtPathAsync(scriptPath, keys, values);
+		var raw = (RedisValue[])await ExecuteScriptAtPathAsync(scriptPath, keys: Array.Empty<RedisKey>(), values);
 		var guids = raw.Select(v => Guid.Parse(v)).ToList();
 		return guids;
 

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.ML;
 using SocialMedia.BusinessLogic.Dtos;
 using SocialMedia.BusinessLogic.Recommendation.Dtos;
-using SocialMedia.BusinessLogic.Services.Blogs;
+using SocialMedia.BusinessLogic.Services.Blog.Redis;
 using SocialMedia.BusinessLogic.Utilities;
 using SocialMedia.DataAccess;
 using SocialMedia.DataAccess.Models;
@@ -16,22 +16,21 @@ using System.Security.Claims;
 namespace SocialMedia.WebApi.Services;
 public class BlogService : IBlogService
 {
-	SocialMediaDbContext context;
-	private readonly IMapper mapper;
+	private readonly SocialMediaDbContext context;
 	private const float contextWeight = 20;
 	private const float likeWeight = 0.01f;
 	private const float commentWeight = 0.1f;
 	private const float decayPerDayRate = 0.001f;
 	private const float SECONDS_IN_DAY = 86400.0f;
 	private readonly RedisScriptManager redis;
-	private const string ZSET_KEY = "posts:byActivity";
 	private const int CACHED_PAGES = 10;
+	private readonly CacheService cacheService;
 
-	public BlogService(SocialMediaDbContext dbContext, IMapper mapper, RedisScriptManager redis)
+	public BlogService(SocialMediaDbContext dbContext, RedisScriptManager redis, CacheService cacheService)
 	{
 		this.context = dbContext;
-		this.mapper = mapper;
 		this.redis = redis;
+		this.cacheService = cacheService;
 	}
 
 	public async Task<BlogPost?> Create(BlogPost blogPost)
@@ -82,57 +81,16 @@ public class BlogService : IBlogService
 			postIds = new List<Guid>();
 
 			if ((page - 1) % CACHED_PAGES == 0)
-			{
-				var topCount = CACHED_PAGES * pageSize;
+				postIds = await cacheService.RescoreAndCacheAsync(pageSize);
 
-				postIds = await baseQuery
-				.AsNoTracking()
-				.Select(p => new
-				{
-					p.Id,
-					p.PostedAt,
-					LikesCount = p.Likes.Count(),
-					CommentsCount = p.Comments.Count()
-				})
-				.Select(x => new
-				{
-					x.Id,
-					Score = (x.LikesCount * likeWeight + x.CommentsCount * commentWeight) * Math.Pow(1 - decayPerDayRate, EF.Functions.DateDiffSecond(x.PostedAt, now) / SECONDS_IN_DAY)
-				})
-				.OrderByDescending(x => x.Score)
-				.Skip((page - 1) * pageSize)
-				.Take(topCount)
-				.Select(x => x.Id)
-				.ToListAsync();
+			var argv = new RedisValue[2];
+			argv[0] = pageSize;
+			int firstScore = ((page - 1) * pageSize) % (CACHED_PAGES * pageSize);
 
-				var keys = postIds
-					.Select(rv => (RedisKey)$"post:{rv}")
-					.ToArray();
+			argv[1] = firstScore;
 
-				var argv = new RedisValue[postIds.Count() * 2];
-				for (int i = 0; i < postIds.Count(); i++)
-				{
-					argv[i * 2] = i;
-					argv[i * 2 + 1] = postIds[i].ToString();
-				}
+			postIds = await redis.ExecuteRetrieveTopNAsync(argv);
 
-				await redis.ExecuteClearAsync();
-				await redis.ExecuteRescoreTopNAsync(keys: Array.Empty<RedisKey>(), argv);
-				postIds = postIds.Take(pageSize).ToList();
-			}
-			else
-			{
-				var argv = new RedisValue[2];
-				argv[0] = pageSize;
-				int firstScore = ((page - 1) * pageSize) % (CACHED_PAGES * pageSize);
-				//lastScore = lastScore == 0
-				//	? CACHED_PAGES * pageSize
-				//	: lastScore;
-
-				argv[1] = firstScore;
-
-				postIds = await redis.ExecuteRetrieveTopNAsync(keys: Array.Empty<RedisKey>(), argv);
-			}
 		}
 
 		var posts = await context.Blogs
