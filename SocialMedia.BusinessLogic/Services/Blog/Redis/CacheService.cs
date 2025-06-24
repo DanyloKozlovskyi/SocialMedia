@@ -61,9 +61,17 @@ public class CacheService : BackgroundService
 		});
 	}
 
+	public async Task<List<Guid>> GetPageFromListAsync(int pageNumber, int pageSize)
+	{
+		var db = _redis.GetDatabase();
+		long start = (long)(pageNumber - 1) * pageSize;
+		long stop = start + pageSize - 1;
+		var values = await db.ListRangeAsync(ZSET_KEY, start, stop);
+		var guids = values.Select(v => Guid.Parse(v)).ToList();
+		return guids;
+	}
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		// initial warm
 		await RescoreAndCacheAsync(DEFAULT_PAGE_SIZE);
 
 		while (!stoppingToken.IsCancellationRequested)

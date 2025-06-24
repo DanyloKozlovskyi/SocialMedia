@@ -1,7 +1,4 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.ML;
 using SocialMedia.BusinessLogic.Dtos;
 using SocialMedia.BusinessLogic.Recommendation.Dtos;
@@ -10,10 +7,8 @@ using SocialMedia.BusinessLogic.Utilities;
 using SocialMedia.DataAccess;
 using SocialMedia.DataAccess.Models;
 using SocialMedia.WebApi.Services.Interfaces;
-using StackExchange.Redis;
-using System.Security.Claims;
 
-namespace SocialMedia.WebApi.Services;
+namespace SocialMedia.BusinessLogic.Services;
 public class BlogService : IBlogService
 {
 	private readonly SocialMediaDbContext context;
@@ -28,7 +23,7 @@ public class BlogService : IBlogService
 
 	public BlogService(SocialMediaDbContext dbContext, RedisScriptManager redis, CacheService cacheService)
 	{
-		this.context = dbContext;
+		context = dbContext;
 		this.redis = redis;
 		this.cacheService = cacheService;
 	}
@@ -41,7 +36,7 @@ public class BlogService : IBlogService
 	}
 	public async Task<IEnumerable<PostResponseModel>?> GetByDescription(string description, Guid? userRequestId = null, int page = 1, int pageSize = 30)
 	{
-		var blogs = await context.Blogs.Where(x => x.Description.ToLower().Contains(description.ToLower())).OrderByDescending(x => (x.Likes.Count(x => x.IsLiked) * 0.1) + x.Comments.Count()).Skip((page - 1) * pageSize).Take(pageSize).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
+		var blogs = await context.Blogs.Where(x => x.Description.ToLower().Contains(description.ToLower())).OrderByDescending(x => x.Likes.Count(x => x.IsLiked) * 0.1 + x.Comments.Count()).Skip((page - 1) * pageSize).Take(pageSize).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
 		return blogs;
 	}
 	public async Task<IEnumerable<PostResponseModel>?> GetParents(Guid id, Guid? userRequestId = null)
@@ -76,21 +71,22 @@ public class BlogService : IBlogService
 		}
 		else
 		{
-			var now = DateTime.UtcNow;
+			//var now = DateTime.UtcNow;
 
-			postIds = new List<Guid>();
+			//postIds = new List<Guid>();
 
-			if ((page - 1) % CACHED_PAGES == 0)
-				postIds = await cacheService.RescoreAndCacheAsync(pageSize);
+			//if ((page - 1) % CACHED_PAGES == 0)
+			//	postIds = await cacheService.RescoreAndCacheAsync(pageSize);
 
-			var argv = new RedisValue[2];
-			argv[0] = pageSize;
-			int firstScore = ((page - 1) * pageSize) % (CACHED_PAGES * pageSize);
+			//var argv = new RedisValue[2];
+			//argv[0] = pageSize;
+			//int firstScore = ((page - 1) * pageSize) % (CACHED_PAGES * pageSize);
 
-			argv[1] = firstScore;
+			//argv[1] = firstScore;
 
-			postIds = await redis.ExecuteRetrieveTopNAsync(argv);
+			//postIds = await redis.ExecuteRetrieveTopNAsync(argv);
 
+			postIds = await cacheService.GetPageFromListAsync(page, pageSize);
 		}
 
 		var posts = await context.Blogs
