@@ -16,9 +16,7 @@ public class BlogService : IBlogService
 	private const float likeWeight = 0.01f;
 	private const float commentWeight = 0.1f;
 	private const float decayPerDayRate = 0.001f;
-	private const float SECONDS_IN_DAY = 86400.0f;
 	private readonly RedisScriptManager redis;
-	private const int CACHED_PAGES = 10;
 	private readonly CacheService cacheService;
 
 	public BlogService(SocialMediaDbContext dbContext, RedisScriptManager redis, CacheService cacheService)

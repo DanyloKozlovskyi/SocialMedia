@@ -115,7 +115,6 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 });
 
 builder.Services.AddSingleton<CacheService>();
-builder.Services.AddHostedService<CacheService>();
 
 builder.Services.Configure<LuaScriptOptions>(builder.Configuration.GetSection("LuaScriptOptions"));
 
