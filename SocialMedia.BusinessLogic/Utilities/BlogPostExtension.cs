@@ -1,12 +1,6 @@
 ﻿using SocialMedia.BusinessLogic.Dtos;
 using SocialMedia.BusinessLogic.Dtos.Identity;
 using SocialMedia.DataAccess.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SocialMedia.BusinessLogic.Utilities;
 
@@ -63,33 +57,6 @@ public static class BlogPostExtension
 				Id = post.UserId
 			} : null,
 			LikeCount = post.Likes != null ? post.Likes.Count(x => x.IsLiked) : 0,
-			//Comments = post.Comments != null
-			//? post.Comments.Select(comment => new PostResponseModel
-			//{
-			//    Id = comment.Id,
-			//    Description = comment.Description,
-			//    Image64 = comment.Image64,
-			//    PostedAt = comment.PostedAt,
-			//    UserId = comment.UserId,
-			//    User = comment.User != null ? new UserResponseModel
-			//    {
-			//        UserName = comment.User.Name,
-			//        Description = comment.User.Description,
-			//        Logo = comment.User.Logo,
-			//        Id = comment.UserId
-			//    } : null,
-			//    LikeCount = comment.Likes != null ? comment.Likes.Count() : 0,
-			//    ParentId = comment.ParentId,
-			//    Comments = null, // Prevent deeper nesting of comments
-			//    CommentCount = comment.Comments != null ? comment.Comments.Count() : 0,
-			//    IsLiked = userRequestId != null && comment.Likes != null
-			//        ? comment.Likes.Any(x => x.UserId == userRequestId && x.IsLiked)
-			//        : false,
-			//    IsCommented = userRequestId != null && comment.Comments != null
-			//        ? comment.Comments.Any(x => x.UserId == userRequestId)
-			//        : false
-			//}).ToList()
-			//: null,
 			Comments = null,
 			CommentCount = post.Comments != null ? post.Comments.Count() : 0,
 			IsLiked = userRequestId != null && post.Likes != null

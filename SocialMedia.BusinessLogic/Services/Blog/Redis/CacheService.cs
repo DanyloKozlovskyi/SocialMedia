@@ -14,7 +14,8 @@ public class CacheService : BackgroundService
 	private const string ZSET_KEY = "posts:byActivity";
 	private const float DECAY_PER_DAY_RATE = 0.001f;
 	private const float SECONDS_IN_DAY = 86400.0f;
-	private const int DEFAULT_PAGE_SIZE = 10;
+	private const int DEFAULT_PAGE_SIZE = 5;
+	private const int PAGES_CACHED = 10;
 
 	public CacheService(
 		IServiceProvider scopedServices,
@@ -44,7 +45,7 @@ public class CacheService : BackgroundService
 					  EF.Functions.DateDiffSecond(x.PostedAt, now) / SECONDS_IN_DAY)
 			  })
 			  .OrderByDescending(x => x.Score)
-			  .Take(DEFAULT_PAGE_SIZE * pageSize)
+			  .Take(PAGES_CACHED * pageSize)
 			  .Select(x => x.Id)
 			  .ToListAsync();
 

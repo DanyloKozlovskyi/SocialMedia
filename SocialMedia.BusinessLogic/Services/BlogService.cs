@@ -71,21 +71,6 @@ public class BlogService : IBlogService
 		}
 		else
 		{
-			//var now = DateTime.UtcNow;
-
-			//postIds = new List<Guid>();
-
-			//if ((page - 1) % CACHED_PAGES == 0)
-			//	postIds = await cacheService.RescoreAndCacheAsync(pageSize);
-
-			//var argv = new RedisValue[2];
-			//argv[0] = pageSize;
-			//int firstScore = ((page - 1) * pageSize) % (CACHED_PAGES * pageSize);
-
-			//argv[1] = firstScore;
-
-			//postIds = await redis.ExecuteRetrieveTopNAsync(argv);
-
 			postIds = await cacheService.GetPageFromListAsync(page, pageSize);
 		}
 
