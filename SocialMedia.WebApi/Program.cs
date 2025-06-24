@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SocialMedia.BusinessLogic.Services;
+using SocialMedia.BusinessLogic.Services.Blog.Redis;
+using SocialMedia.BusinessLogic.Services.Blog.Redis.Options;
 using SocialMedia.BusinessLogic.Utilities;
 using SocialMedia.DataAccess;
 using SocialMedia.DataAccess.Identity;
@@ -14,6 +17,7 @@ using SocialMedia.DataAccess.Seeding.Interfaces;
 using SocialMedia.DataAccess.Seeding.Options;
 using SocialMedia.WebApi.Services;
 using SocialMedia.WebApi.Services.Interfaces;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +33,7 @@ builder.Services.AddControllers(options =>
 builder.Services.AddControllers();
 builder.Services.AddDbContext<SocialMediaDbContext>(options =>
 {
-	options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), opt => opt.CommandTimeout(60).UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
+	options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), opt => opt.CommandTimeout(60).UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)).EnableSensitiveDataLogging();
 });
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
@@ -103,6 +107,18 @@ builder.Services.Configure<CommentSeedOptions>(opt =>
 	opt.CommentCount = 800;
 	opt.ImageProbability = 0.25;
 });
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+	var configuration = builder.Configuration["Redis:ConnectionString"];
+	return ConnectionMultiplexer.Connect(configuration);
+});
+
+builder.Services.AddSingleton<CacheService>();
+
+builder.Services.Configure<LuaScriptOptions>(builder.Configuration.GetSection("LuaScriptOptions"));
+
+builder.Services.AddSingleton<RedisScriptManager>();
 
 builder.Services.AddScoped<ICommentSeeder, CommentSeeder>();
 

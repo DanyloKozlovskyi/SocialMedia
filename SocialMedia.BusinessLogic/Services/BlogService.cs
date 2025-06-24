@@ -1,31 +1,29 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.ML;
 using SocialMedia.BusinessLogic.Dtos;
 using SocialMedia.BusinessLogic.Recommendation.Dtos;
+using SocialMedia.BusinessLogic.Services.Blog.Redis;
 using SocialMedia.BusinessLogic.Utilities;
 using SocialMedia.DataAccess;
 using SocialMedia.DataAccess.Models;
 using SocialMedia.WebApi.Services.Interfaces;
-using System.Security.Claims;
 
-namespace SocialMedia.WebApi.Services;
+namespace SocialMedia.BusinessLogic.Services;
 public class BlogService : IBlogService
 {
-	SocialMediaDbContext context;
-	private readonly IMapper mapper;
+	private readonly SocialMediaDbContext context;
 	private const float contextWeight = 20;
 	private const float likeWeight = 0.01f;
 	private const float commentWeight = 0.1f;
 	private const float decayPerDayRate = 0.001f;
-	private const float SECONDS_IN_DAY = 86400.0f;
+	private readonly RedisScriptManager redis;
+	private readonly CacheService cacheService;
 
-	public BlogService(SocialMediaDbContext dbContext, IMapper mapper)
+	public BlogService(SocialMediaDbContext dbContext, RedisScriptManager redis, CacheService cacheService)
 	{
 		context = dbContext;
-		this.mapper = mapper;
+		this.redis = redis;
+		this.cacheService = cacheService;
 	}
 
 	public async Task<BlogPost?> Create(BlogPost blogPost)
@@ -36,7 +34,7 @@ public class BlogService : IBlogService
 	}
 	public async Task<IEnumerable<PostResponseModel>?> GetByDescription(string description, Guid? userRequestId = null, int page = 1, int pageSize = 30)
 	{
-		var blogs = await context.Blogs.Where(x => x.Description.ToLower().Contains(description.ToLower())).OrderByDescending(x => (x.Likes.Count(x => x.IsLiked) * 0.1) + x.Comments.Count()).Skip((page - 1) * pageSize).Take(pageSize).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
+		var blogs = await context.Blogs.Where(x => x.Description.ToLower().Contains(description.ToLower())).OrderByDescending(x => x.Likes.Count(x => x.IsLiked) * 0.1 + x.Comments.Count()).Skip((page - 1) * pageSize).Take(pageSize).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
 		return blogs;
 	}
 	public async Task<IEnumerable<PostResponseModel>?> GetParents(Guid id, Guid? userRequestId = null)
@@ -67,32 +65,11 @@ public class BlogService : IBlogService
 
 		if (userId != null)
 		{
-			// Use recommendation system for personalized results
-			postIds = await ComputeRecommendedPostIdsAsync(
-				baseQuery, userId.Value, page, pageSize);
+			postIds = await ComputeRecommendedPostIdsAsync(baseQuery, userId.Value, page, pageSize);
 		}
 		else
 		{
-			var now = DateTime.UtcNow;
-
-			postIds = await baseQuery
-			.Select(p => new
-			{
-				p.Id,
-				p.PostedAt,
-				LikesCount = p.Likes.Count(),
-				CommentsCount = p.Comments.Count()
-			})
-			.Select(x => new
-			{
-				x.Id,
-				Score = (x.LikesCount * likeWeight + x.CommentsCount * commentWeight) * Math.Pow(1 - decayPerDayRate, EF.Functions.DateDiffSecond(x.PostedAt, now) / SECONDS_IN_DAY)
-			})
-			.OrderByDescending(x => x.Score)
-			.Skip((page - 1) * pageSize)
-			.Take(pageSize)
-			.Select(x => x.Id)
-			.ToListAsync();
+			postIds = await cacheService.GetPageFromListAsync(page, pageSize);
 		}
 
 		var posts = await context.Blogs
@@ -100,7 +77,8 @@ public class BlogService : IBlogService
 			.ToPostResponseModelQueryable(userRequestId: userId)
 			.ToListAsync();
 
-		return posts.OrderBy(x => postIds.IndexOf(x.Id));
+		var result = posts.OrderBy(x => postIds.IndexOf(x.Id));
+		return result;
 	}
 	public async Task<PostResponseModel?> GetById(Guid id, Guid? userId = null)
 	{
