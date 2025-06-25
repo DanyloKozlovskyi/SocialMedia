@@ -1,14 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.ML;
-using SocialMedia.Application.Dtos;
-using SocialMedia.Application.Recommendation.Dtos;
-using SocialMedia.Application.Services.Blog.Redis;
-using SocialMedia.Application.Services.Interfaces;
-using SocialMedia.Application.Utilities;
+using SocialMedia.Application.BlogPosts.Redis;
+using SocialMedia.Application.Recommendation;
 using SocialMedia.Domain.Entities;
 using SocialMedia.Infrastructure.Persistence;
 
-namespace SocialMedia.Application.Services;
+namespace SocialMedia.Application.BlogPosts;
 public class BlogService : IBlogService
 {
 	private readonly SocialMediaDbContext context;

@@ -1,9 +1,8 @@
-﻿using SocialMedia.Application.Dtos;
-using SocialMedia.Application.Dtos.Identity;
+﻿using SocialMedia.Application.Identity.Dtos;
 using SocialMedia.Domain.Entities;
 
 
-namespace SocialMedia.Application.Utilities;
+namespace SocialMedia.Application.BlogPosts;
 
 public static class BlogPostExtension
 {

@@ -1,4 +1,4 @@
-﻿namespace SocialMedia.Application.Dtos.Identity;
+﻿namespace SocialMedia.Application.Identity.Dtos;
 public class AuthenticationResponse
 {
 	public string? UserName { get; set; } = string.Empty;

@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
-using SocialMedia.Application.Services.Blog.Redis.Options;
+using SocialMedia.Application.BlogPosts.Redis.Options;
 using StackExchange.Redis;
 
-namespace SocialMedia.Application.Services.Blog.Redis;
+namespace SocialMedia.Application.BlogPosts.Redis;
 public class RedisScriptManager
 {
 	private readonly IConnectionMultiplexer _mux;

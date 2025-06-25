@@ -1,4 +1,4 @@
-﻿namespace SocialMedia.Application.Dtos.Identity;
+﻿namespace SocialMedia.Application.Identity.Dtos;
 public class TokenModel
 {
 	public string? Token { get; set; }

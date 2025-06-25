@@ -1,6 +1,6 @@
-﻿using SocialMedia.Application.Dtos.Identity;
+﻿using SocialMedia.Application.Identity.Dtos;
 
-namespace SocialMedia.Application.Dtos;
+namespace SocialMedia.Application.BlogPosts;
 public class PostResponseModel
 {
 	public Guid Id { get; set; }

@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using SocialMedia.Application.Dtos.Identity;
+using SocialMedia.Application.Identity.Dtos;
 using SocialMedia.Domain.Entities.Identity;
 
 namespace SocialMedia.Application.Utilities

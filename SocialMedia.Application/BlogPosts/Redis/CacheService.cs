@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 using SocialMedia.Infrastructure.Persistence;
 using StackExchange.Redis;
 
-namespace SocialMedia.Application.Services.Blog.Redis;
+namespace SocialMedia.Application.BlogPosts.Redis;
 public class CacheService : BackgroundService
 {
 	private readonly IServiceProvider _scopedServices;

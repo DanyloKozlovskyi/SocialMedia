@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SocialMedia.Application.Dtos.Identity;
+namespace SocialMedia.Application.Identity.Dtos;
 public class LoginDto
 {
 	[Required(ErrorMessage = "Email can't be blank")]

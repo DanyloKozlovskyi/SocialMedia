@@ -1,8 +1,8 @@
-﻿using SocialMedia.Application.Dtos.Identity;
+﻿using SocialMedia.Application.Identity.Dtos;
 using SocialMedia.Domain.Entities.Identity;
 using System.Security.Claims;
 
-namespace SocialMedia.Application.Services.Interfaces;
+namespace SocialMedia.Application.Identity;
 public interface IJwtService
 {
 	AuthenticationResponse CreateJwtToken(ApplicationUser user);

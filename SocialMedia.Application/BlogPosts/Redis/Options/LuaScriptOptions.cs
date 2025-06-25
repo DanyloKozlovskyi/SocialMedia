@@ -1,4 +1,4 @@
-﻿namespace SocialMedia.Application.Services.Blog.Redis.Options;
+﻿namespace SocialMedia.Application.BlogPosts.Redis.Options;
 public class LuaScriptOptions
 {
 	public string ScriptsFolder { get; set; } = "Scripts";

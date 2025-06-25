@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML.Data;
 
-namespace SocialMedia.Application.Recommendation.Dtos;
+namespace SocialMedia.Application.Recommendation;
 public class PostVector
 {
 	[VectorType]

@@ -1,7 +1,6 @@
-﻿using SocialMedia.Application.Dtos;
-using SocialMedia.Domain.Entities;
+﻿using SocialMedia.Domain.Entities;
 
-namespace SocialMedia.Application.Services.Interfaces;
+namespace SocialMedia.Application.BlogPosts;
 public interface IBlogService
 {
 	float CosineSimilarity(float[] vec1, float[] vec2);

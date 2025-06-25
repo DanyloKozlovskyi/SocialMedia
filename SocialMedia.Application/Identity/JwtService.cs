@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using SocialMedia.Application.Dtos.Identity;
-using SocialMedia.Application.Services.Interfaces;
+using SocialMedia.Application.Identity.Dtos;
 using SocialMedia.Domain.Entities.Identity;
 using System.ComponentModel.Design;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,7 +8,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace SocialMedia.WebApi.Services
+namespace SocialMedia.Application.Identity
 {
 	public class JwtService : IJwtService
 	{
