@@ -13,10 +13,11 @@ using SocialMedia.Application.Services.Interfaces;
 using SocialMedia.Application.Utilities;
 using SocialMedia.Domain.Entities.Identity;
 using SocialMedia.Infrastructure.Persistence;
-using SocialMedia.Infrastructure.Persistence.Seeding;
-using SocialMedia.Infrastructure.Persistence.Seeding.Interfaces;
-using SocialMedia.Infrastructure.Persistence.Seeding.Options;
-using SocialMedia.Infrastructure.Persistence.Seeding.SeedRoles;
+using SocialMedia.Infrastructure.Persistence.Seeders.BlogPosts;
+using SocialMedia.Infrastructure.Persistence.Seeders.Comments;
+using SocialMedia.Infrastructure.Persistence.Seeders.Likes;
+using SocialMedia.Infrastructure.Persistence.Seeders.Roles;
+using SocialMedia.Infrastructure.Persistence.Seeders.Users;
 using SocialMedia.WebApi.Services;
 using StackExchange.Redis;
 
@@ -53,7 +54,7 @@ builder.Services.AddAuthentication(options =>
 	options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
-	options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+	options.TokenValidationParameters = new TokenValidationParameters()
 	{
 		ValidateAudience = true,
 		ValidAudience = builder.Configuration["Jwt:Audience"],
