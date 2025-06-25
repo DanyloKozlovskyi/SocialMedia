@@ -1,4 +1,4 @@
-﻿namespace SocialMedia.Infrastructure.Persistence.Seeding.Options;
+﻿namespace SocialMedia.Infrastructure.Persistence.Seeders.Likes;
 public sealed class LikeSeedOptions
 {
 	public int MinPerPost { get; set; } = 1;

@@ -1,10 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SocialMedia.Domain.Entities;
-using SocialMedia.Infrastructure.Persistence.Seeding.Interfaces;
-using SocialMedia.Infrastructure.Persistence.Seeding.Options;
 
-namespace SocialMedia.Infrastructure.Persistence.Seeding;
+namespace SocialMedia.Infrastructure.Persistence.Seeders.Likes;
 public sealed class LikeSeeder : ILikeSeeder
 {
 	private readonly SocialMediaDbContext _ctx;

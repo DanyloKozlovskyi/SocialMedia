@@ -1,4 +1,4 @@
-﻿namespace SocialMedia.Infrastructure.Persistence.Seeding.Options;
+﻿namespace SocialMedia.Infrastructure.Persistence.Seeders.Comments;
 public sealed class CommentSeedOptions
 {
 	public string ImagesDirectory { get; set; } = default!;

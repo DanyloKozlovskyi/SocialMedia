@@ -2,10 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SocialMedia.Domain.Entities;
-using SocialMedia.Infrastructure.Persistence.Seeding.Interfaces;
-using SocialMedia.Infrastructure.Persistence.Seeding.Options;
 
-namespace SocialMedia.Infrastructure.Persistence.Seeding;
+namespace SocialMedia.Infrastructure.Persistence.Seeders.Comments;
 public sealed class CommentSeeder : ICommentSeeder
 {
 	private readonly SocialMediaDbContext _ctx;

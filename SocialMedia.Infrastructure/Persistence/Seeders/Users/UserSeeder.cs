@@ -2,12 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SocialMedia.Domain.Entities.Identity;
-using SocialMedia.Infrastructure.Persistence.Seeding.Interfaces;
-using SocialMedia.Infrastructure.Persistence.Seeding.Options;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace SocialMedia.Infrastructure.Persistence.Seeding;
+namespace SocialMedia.Infrastructure.Persistence.Seeders.Users;
 
 public sealed class CsvUserSeeder : IUserSeeder
 {

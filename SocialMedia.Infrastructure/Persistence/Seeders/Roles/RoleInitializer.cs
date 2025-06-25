@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using SocialMedia.Domain.Entities.Identity;
 
-namespace SocialMedia.Infrastructure.Persistence.Seeding.SeedRoles
+namespace SocialMedia.Infrastructure.Persistence.Seeders.Roles
 {
 	public class RoleInitializer
 	{
