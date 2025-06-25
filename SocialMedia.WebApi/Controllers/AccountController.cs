@@ -77,7 +77,7 @@ namespace SocialMedia.WebApi.Controllers
 		{
 			var userId = GetUserId();
 			var userIdString = userId.ToString();
-			var user = await userManager.FindByIdAsync(userId.ToString());
+			var user = await userManager.FindByIdAsync(userIdString);
 			if (user == null)
 				return NotFound();
 
