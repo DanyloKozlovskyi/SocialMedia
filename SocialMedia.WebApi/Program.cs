@@ -1,4 +1,3 @@
-using MenuVoting.DataAccess.Models.SeedRoles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
