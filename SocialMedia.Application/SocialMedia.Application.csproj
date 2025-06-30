@@ -6,18 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-	<ItemGroup>
-		<EmbeddedResource Include="Scripts\rescore_top_n.lua" />
-		<EmbeddedResource Include="Scripts\retrieve_top_n.lua" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Include="Scripts\rescore_top_n.lua">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-		</None>
-	</ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />

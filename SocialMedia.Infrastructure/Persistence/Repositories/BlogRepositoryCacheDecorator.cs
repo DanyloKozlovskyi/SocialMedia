@@ -1,6 +1,4 @@
-﻿using SocialMedia.Application;
-using SocialMedia.Application.BlogPosts;
-using SocialMedia.Application.BlogPosts.Redis;
+﻿using SocialMedia.Application.BlogPosts;
 using SocialMedia.Domain;
 using SocialMedia.Domain.Entities;
 using System.Linq.Expressions;

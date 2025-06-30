@@ -1,7 +1,6 @@
-﻿using SocialMedia.Domain;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
-namespace SocialMedia.Application;
+namespace SocialMedia.Domain;
 
 public interface IEntityRepository<TKey, TEntity>
 where TEntity : class, IKeyedEntity<TKey>, new()
