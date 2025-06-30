@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using SocialMedia.Application;
 using SocialMedia.Domain;
 using SocialMedia.Infrastructure.Persistence.Repositories.Extensions;
 using System.Linq.Expressions;
