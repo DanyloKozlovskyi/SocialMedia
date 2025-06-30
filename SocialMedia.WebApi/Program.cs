@@ -1,4 +1,3 @@
-using MenuVoting.DataAccess.Models.SeedRoles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -6,17 +5,21 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SocialMedia.BusinessLogic.Services;
-using SocialMedia.BusinessLogic.Services.Blog.Redis;
-using SocialMedia.BusinessLogic.Services.Blog.Redis.Options;
-using SocialMedia.BusinessLogic.Utilities;
-using SocialMedia.DataAccess;
-using SocialMedia.DataAccess.Identity;
-using SocialMedia.DataAccess.Seeding;
-using SocialMedia.DataAccess.Seeding.Interfaces;
-using SocialMedia.DataAccess.Seeding.Options;
-using SocialMedia.WebApi.Services;
-using SocialMedia.WebApi.Services.Interfaces;
+using SocialMedia.Application;
+using SocialMedia.Application.BlogPosts;
+using SocialMedia.Application.BlogPosts.Redis;
+using SocialMedia.Application.BlogPosts.Redis.Options;
+using SocialMedia.Application.Identity;
+using SocialMedia.Application.Utilities;
+using SocialMedia.Domain.Entities.Identity;
+using SocialMedia.Infrastructure.Caching.Redis;
+using SocialMedia.Infrastructure.Persistence;
+using SocialMedia.Infrastructure.Persistence.Repositories;
+using SocialMedia.Infrastructure.Persistence.Seeders.BlogPosts;
+using SocialMedia.Infrastructure.Persistence.Seeders.Comments;
+using SocialMedia.Infrastructure.Persistence.Seeders.Likes;
+using SocialMedia.Infrastructure.Persistence.Seeders.Roles;
+using SocialMedia.Infrastructure.Persistence.Seeders.Users;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,7 +55,7 @@ builder.Services.AddAuthentication(options =>
 	options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
-	options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+	options.TokenValidationParameters = new TokenValidationParameters()
 	{
 		ValidateAudience = true,
 		ValidAudience = builder.Configuration["Jwt:Audience"],
@@ -82,6 +85,9 @@ builder.Services.AddCors(options =>
 	});
 });
 
+builder.Services.AddScoped(typeof(IEntityRepository<,>), typeof(EntityRepository<,>));
+builder.Services.AddScoped<IPostRankingCache, PostRankingCache>();
+builder.Services.AddScoped<IBlogRepository, BlogRepositoryCacheDecorator>();
 builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddScoped<IBlogService, BlogService>();
 
@@ -114,7 +120,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 	return ConnectionMultiplexer.Connect(configuration);
 });
 
-builder.Services.AddSingleton<CacheService>();
+builder.Services.AddSingleton<PostRankingCache>();
 
 builder.Services.Configure<LuaScriptOptions>(builder.Configuration.GetSection("LuaScriptOptions"));
 
