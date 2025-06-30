@@ -1,4 +1,4 @@
-﻿namespace SocialMedia.Infrastructure.Caching.Redis.Options;
+﻿namespace SocialMedia.Application.Options;
 public class LuaScriptOptions
 {
 	public string ScriptsFolder { get; set; } = "Scripts";

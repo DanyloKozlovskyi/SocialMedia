@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using SocialMedia.Infrastructure.Caching.Redis.Options;
+using SocialMedia.Application.Options;
 using StackExchange.Redis;
 
 namespace SocialMedia.Infrastructure.Caching.Redis;
