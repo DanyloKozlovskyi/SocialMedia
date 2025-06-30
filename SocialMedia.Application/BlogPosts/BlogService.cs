@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.ML;
-using SocialMedia.Application.BlogPosts.Redis;
 using SocialMedia.Application.Recommendation;
 using SocialMedia.Domain;
 using SocialMedia.Domain.Entities;
@@ -15,13 +14,11 @@ public class BlogService : IBlogService
 	private const float LIKE_WEIGHT = 0.01f;
 	private const float COMMENT_WEIGHT = 0.1f;
 	private const float DECAY_PER_DAY_RATE = 0.001f;
-	private readonly RedisScriptManager _redis;
 	private readonly IPostRankingCache _cache;
 
-	public BlogService(IBlogRepository repository, RedisScriptManager redis, IPostRankingCache cache)
+	public BlogService(IBlogRepository repository, IPostRankingCache cache)
 	{
 		_blogRepository = repository;
-		_redis = redis;
 		_cache = cache;
 	}
 

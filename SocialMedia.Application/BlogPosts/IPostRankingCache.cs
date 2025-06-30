@@ -1,4 +1,4 @@
-﻿namespace SocialMedia.Application.BlogPosts.Redis;
+﻿namespace SocialMedia.Application.BlogPosts;
 public interface IPostRankingCache
 {
 	public Task<List<Guid>> RescoreAndCacheAsync(int pageSize, int page = 1);

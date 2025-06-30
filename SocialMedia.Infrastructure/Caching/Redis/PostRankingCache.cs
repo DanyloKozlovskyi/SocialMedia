@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using SocialMedia.Application.BlogPosts.Redis;
+using SocialMedia.Application.BlogPosts;
 using SocialMedia.Infrastructure.Persistence;
 using StackExchange.Redis;
 

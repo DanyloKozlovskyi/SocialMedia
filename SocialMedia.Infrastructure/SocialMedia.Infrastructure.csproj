@@ -6,6 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+	<ItemGroup>
+		<EmbeddedResource Include="Caching\Redis\Scripts\rescore_top_n.lua" />
+		<EmbeddedResource Include="Caching\Redis\Scripts\retrieve_top_n.lua" />
+	</ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Bogus" Version="35.6.3" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.13" />
