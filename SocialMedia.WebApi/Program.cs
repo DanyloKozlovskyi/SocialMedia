@@ -5,13 +5,16 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SocialMedia.Application;
 using SocialMedia.Application.BlogPosts;
 using SocialMedia.Application.BlogPosts.Redis;
 using SocialMedia.Application.BlogPosts.Redis.Options;
 using SocialMedia.Application.Identity;
 using SocialMedia.Application.Utilities;
 using SocialMedia.Domain.Entities.Identity;
+using SocialMedia.Infrastructure.Caching.Redis;
 using SocialMedia.Infrastructure.Persistence;
+using SocialMedia.Infrastructure.Persistence.Repositories;
 using SocialMedia.Infrastructure.Persistence.Seeders.BlogPosts;
 using SocialMedia.Infrastructure.Persistence.Seeders.Comments;
 using SocialMedia.Infrastructure.Persistence.Seeders.Likes;
@@ -82,6 +85,9 @@ builder.Services.AddCors(options =>
 	});
 });
 
+builder.Services.AddScoped(typeof(IEntityRepository<,>), typeof(EntityRepository<,>));
+builder.Services.AddScoped<IPostRankingCache, PostRankingCache>();
+builder.Services.AddScoped<IBlogRepository, BlogRepositoryCacheDecorator>();
 builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddScoped<IBlogService, BlogService>();
 
@@ -114,7 +120,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 	return ConnectionMultiplexer.Connect(configuration);
 });
 
-builder.Services.AddSingleton<CacheService>();
+builder.Services.AddSingleton<PostRankingCache>();
 
 builder.Services.Configure<LuaScriptOptions>(builder.Configuration.GetSection("LuaScriptOptions"));
 

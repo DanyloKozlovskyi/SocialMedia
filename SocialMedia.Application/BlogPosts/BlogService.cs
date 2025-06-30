@@ -2,53 +2,55 @@
 using Microsoft.ML;
 using SocialMedia.Application.BlogPosts.Redis;
 using SocialMedia.Application.Recommendation;
+using SocialMedia.Domain;
 using SocialMedia.Domain.Entities;
-using SocialMedia.Infrastructure.Persistence;
+using System.Linq.Expressions;
 
 namespace SocialMedia.Application.BlogPosts;
 public class BlogService : IBlogService
 {
-	private readonly SocialMediaDbContext context;
-	private const float contextWeight = 20;
-	private const float likeWeight = 0.01f;
-	private const float commentWeight = 0.1f;
-	private const float decayPerDayRate = 0.001f;
-	private readonly RedisScriptManager redis;
-	private readonly CacheService cacheService;
+	private readonly IBlogRepository _blogRepository;
+	private readonly IEntityRepository<Guid, Like> _likeRepository;
+	private const float CONTEXT_WEIGHT = 20;
+	private const float LIKE_WEIGHT = 0.01f;
+	private const float COMMENT_WEIGHT = 0.1f;
+	private const float DECAY_PER_DAY_RATE = 0.001f;
+	private readonly RedisScriptManager _redis;
+	private readonly IPostRankingCache _cache;
 
-	public BlogService(SocialMediaDbContext dbContext, RedisScriptManager redis, CacheService cacheService)
+	public BlogService(IBlogRepository repository, RedisScriptManager redis, IPostRankingCache cache)
 	{
-		context = dbContext;
-		this.redis = redis;
-		this.cacheService = cacheService;
+		_blogRepository = repository;
+		_redis = redis;
+		_cache = cache;
 	}
 
 	public async Task<BlogPost?> Create(BlogPost blogPost)
 	{
-		await context.AddAsync(blogPost);
-		await context.SaveChangesAsync();
+		await _blogRepository.Create(blogPost);
+		await _blogRepository.SaveChangesAsync();
 		return blogPost;
 	}
 	public async Task<IEnumerable<PostResponseModel>?> GetByDescription(string description, Guid? userRequestId = null, int page = 1, int pageSize = 30)
 	{
-		var blogs = await context.Blogs.Where(x => x.Description.ToLower().Contains(description.ToLower())).OrderByDescending(x => x.Likes.Count(x => x.IsLiked) * 0.1 + x.Comments.Count()).Skip((page - 1) * pageSize).Take(pageSize).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
+		var blogs = await _blogRepository.Get(skip: (page - 1) * pageSize, take: pageSize, whereExpression: x => x.Description.ToLower().Contains(description.ToLower()), orderBy: new Dictionary<Expression<Func<BlogPost, object>>, SortDirection>
+		{
+			{ x => x.Likes.Count(x => x.IsLiked) * LIKE_WEIGHT + x.Comments.Count() * COMMENT_WEIGHT, SortDirection.Descending }
+		}).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
+
 		return blogs;
 	}
 	public async Task<IEnumerable<PostResponseModel>?> GetParents(Guid id, Guid? userRequestId = null)
 	{
 		var idList = new List<Guid>();
-		var cur = await context.Blogs.FindAsync(id);
+		var cur = await _blogRepository.GetByFilterNoTracking(x => x.Id == id).FirstOrDefaultAsync();
 		while (cur?.ParentId != null)
 		{
 			idList.Add(cur.ParentId.Value);
-			cur = await context.Blogs.FindAsync(cur.ParentId.Value);
+			cur = await _blogRepository.GetByFilterNoTracking(x => x.Id == cur.ParentId.Value).FirstOrDefaultAsync();
 		}
 
-		var postsWithUser = await context.Blogs
-			.Where(b => idList.Contains(b.Id))
-			.Include(b => b.User)
-			.Include(b => b.Likes)
-			.Include(b => b.Comments).ThenInclude(c => c.User)
+		var postsWithUser = await _blogRepository.GetByFilterNoTracking(x => idList.Contains(x.Id), "User,Likes,Comments.User")
 			.ToPostResponseModelQueryable(userRequestId)
 			.ToListAsync();
 
@@ -56,7 +58,7 @@ public class BlogService : IBlogService
 	}
 	public async Task<IEnumerable<PostResponseModel>> GetAll(Guid? userId = null, int page = 1, int pageSize = 30)
 	{
-		var baseQuery = context.Blogs.Where(x => x.ParentId == null);
+		var baseQuery = _blogRepository.GetByFilterNoTracking(x => x.ParentId == null);
 
 		List<Guid> postIds;
 
@@ -66,11 +68,10 @@ public class BlogService : IBlogService
 		}
 		else
 		{
-			postIds = await cacheService.GetPageFromListAsync(page, pageSize);
+			postIds = await _cache.GetPageFromListAsync(page, pageSize);
 		}
 
-		var posts = await context.Blogs
-			.Where(x => postIds.Contains(x.Id))
+		var posts = await _blogRepository.GetByFilterNoTracking(x => postIds.Contains(x.Id))
 			.ToPostResponseModelQueryable(userRequestId: userId)
 			.ToListAsync();
 
@@ -79,31 +80,40 @@ public class BlogService : IBlogService
 	}
 	public async Task<PostResponseModel?> GetById(Guid id, Guid? userId = null)
 	{
-		return await context.Blogs.ToPostResponseModelQueryable(userRequestId: userId).FirstOrDefaultAsync(x => x.Id == id);
+		return await _blogRepository.Get().ToPostResponseModelQueryable(userRequestId: userId).FirstOrDefaultAsync(x => x.Id == id);
 	}
 	public async Task<IEnumerable<PostResponseModel>?> GetByParentId(Guid parentId, Guid? userId = null, int page = 1, int pageSize = 30)
 	{
-		return await context.Blogs.Where(x => x.ParentId == parentId).OrderByDescending(x => x.PostedAt).Skip((page - 1) * pageSize).Take(pageSize).ToPostResponseModelQueryable(userRequestId: userId).ToListAsync();
+		return await _blogRepository.Get(skip: (page - 1) * pageSize, take: pageSize, whereExpression: x => x.ParentId == parentId, orderBy: new Dictionary<Expression<Func<BlogPost, object>>, SortDirection>
+		{
+			{ post => post.PostedAt, SortDirection.Descending }
+		}).ToPostResponseModelQueryable(userRequestId: userId).ToListAsync();
 	}
-
+	private IQueryable<BlogPost> GetPostsInChronologicalOrder(Expression<Func<BlogPost, bool>> whereExpression = null, int skip = 0, int take = 0, bool asNoTracking = false)
+	{
+		return _blogRepository.Get(skip: skip, take: take, whereExpression: whereExpression, orderBy: new Dictionary<Expression<Func<BlogPost, object>>, SortDirection>
+		{
+			{ post => post.PostedAt, SortDirection.Descending }
+		}, asNoTracking: asNoTracking);
+	}
 	public async Task<IEnumerable<PostResponseModel>?> GetByUserId(Guid userId, Guid? userRequestId = null, int page = 1, int pageSize = 30)
 	{
-		return await context.Blogs.Where(x => x.UserId == userId).OrderByDescending(x => x.PostedAt).Skip((page - 1) * pageSize).Take(pageSize).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
+		return await GetPostsInChronologicalOrder(skip: (page - 1) * pageSize, take: pageSize, whereExpression: x => x.UserId == userId).ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
 	}
 
 	public async Task<Like?> GetLike(Guid? postId, Guid? userId)
 	{
-		return await context.Likes.Where(x => x.PostId == postId && x.UserId == userId && x.IsLiked).FirstOrDefaultAsync();
+		return await _likeRepository.GetByFilterNoTracking(x => x.PostId == postId && x.UserId == userId && x.IsLiked).FirstOrDefaultAsync();
 	}
 
 	public async Task<IEnumerable<Like>?> GetLikes(Guid? postId)
 	{
-		return await context.Likes.Where(x => x.PostId == postId && x.IsLiked).ToListAsync();
+		return await _likeRepository.GetByFilterNoTracking(x => x.PostId == postId && x.IsLiked).ToListAsync();
 	}
 
 	public async Task<IEnumerable<Like>?> GetUserLikes(Guid? userId, PostsRequestModel posts)
 	{
-		return await context.Likes.Where(x => x.UserId == userId && posts.PostIds.Contains(x.PostId) && x.IsLiked).ToListAsync();
+		return await _likeRepository.GetByFilterNoTracking(x => x.UserId == userId && posts.PostIds.Contains(x.PostId) && x.IsLiked).ToListAsync();
 	}
 
 	public async Task<int> SetLike(Guid postId, Guid userId)
@@ -113,14 +123,14 @@ public class BlogService : IBlogService
 		if (like == null)
 		{
 			like = new Like() { Id = Guid.NewGuid(), PostId = postId, UserId = userId, IsLiked = true };
-			await context.Likes.AddAsync(like);
+			await _likeRepository.Create(like);
 		}
 		else
 			like.IsLiked = !like.IsLiked;
 
 		like.CreatedAt = DateTime.UtcNow;
 
-		await context.SaveChangesAsync();
+		await _likeRepository.SaveChangesAsync();
 		var post = await GetById(postId);
 		return post.LikeCount;
 	}
@@ -162,8 +172,13 @@ public class BlogService : IBlogService
 		var transformedData = model.Transform(data);
 		var vectors = mlContext.Data.CreateEnumerable<PostVector>(transformedData, reuseRowObject: false).ToList();
 
-		var userEngagedPosts = await context.Blogs
-			.Where(x => x.ParentId == null &&
+		//var userEngagedPosts = await _repository.Blogs
+		//	.Where(x => x.ParentId == null &&
+		//		(x.Likes.Any(l => l.UserId == userId) || x.Comments.Any(c => c.UserId == userId)))
+		//	.Select(x => new PostData { Description = x.Description })
+		//	.ToListAsync();
+
+		var userEngagedPosts = await _blogRepository.GetByFilterNoTracking(x => x.ParentId == null &&
 				(x.Likes.Any(l => l.UserId == userId) || x.Comments.Any(c => c.UserId == userId)))
 			.Select(x => new PostData { Description = x.Description })
 			.ToListAsync();
@@ -192,7 +207,7 @@ public class BlogService : IBlogService
 		var scoredPosts = posts.Select((post, i) =>
 		{
 			var ageInDays = (now - post.PostedAt).TotalDays;
-			var decayFactor = Math.Pow(1 - decayPerDayRate, ageInDays);
+			var decayFactor = Math.Pow(1 - DECAY_PER_DAY_RATE, ageInDays);
 
 			//double engagement = post.Likes * likeWeight + post.Comments * commentWeight;
 			//double dynamicContextWeight = 50.0 / (1.0 + engagement);
@@ -201,7 +216,7 @@ public class BlogService : IBlogService
 			//                + post.Likes * likeWeight
 			//+ post.Comments * commentWeight;
 
-			double engagementValue = post.Likes * likeWeight + post.Comments * commentWeight;
+			double engagementValue = post.Likes * LIKE_WEIGHT + post.Comments * COMMENT_WEIGHT;
 			double contextWeight = Math.Log(1 + engagementValue);
 
 			double contextScore = CosineSimilarity(avgUserVector, vectors[i].Features) * contextWeight;

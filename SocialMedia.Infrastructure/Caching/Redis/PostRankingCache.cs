@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using SocialMedia.Application.BlogPosts.Redis;
 using SocialMedia.Infrastructure.Persistence;
 using StackExchange.Redis;
 
-namespace SocialMedia.Application.BlogPosts.Redis;
-public class CacheService : BackgroundService
+namespace SocialMedia.Infrastructure.Caching.Redis;
+public class PostRankingCache : IPostRankingCache
 {
 	private readonly IServiceProvider _scopedServices;
 	private readonly IConnectionMultiplexer _redis;
@@ -14,10 +14,10 @@ public class CacheService : BackgroundService
 	private const string ZSET_KEY = "posts:byActivity";
 	private const float DECAY_PER_DAY_RATE = 0.001f;
 	private const float SECONDS_IN_DAY = 86400.0f;
-	private const int DEFAULT_PAGE_SIZE = 5;
+	//private const int DEFAULT_PAGE_SIZE = 5;
 	private const int PAGES_CACHED = 10;
 
-	public CacheService(
+	public PostRankingCache(
 		IServiceProvider scopedServices,
 		IConnectionMultiplexer redis)
 	{
@@ -71,9 +71,5 @@ public class CacheService : BackgroundService
 		var values = await db.ListRangeAsync(ZSET_KEY, start, stop);
 		var guids = values.Select(v => Guid.Parse(v)).ToList();
 		return guids;
-	}
-	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-	{
-		await RescoreAndCacheAsync(DEFAULT_PAGE_SIZE);
 	}
 }

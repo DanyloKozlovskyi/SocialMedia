@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SocialMedia.Application\SocialMedia.Application.csproj" />
     <ProjectReference Include="..\SocialMedia.Domain\SocialMedia.Domain.csproj" />
   </ItemGroup>
 
