@@ -16,9 +16,10 @@ public class BlogService : IBlogService
 	private const float DECAY_PER_DAY_RATE = 0.001f;
 	private readonly IPostRankingCache _cache;
 
-	public BlogService(IBlogRepository repository, IPostRankingCache cache)
+	public BlogService(IBlogRepository repository, IEntityRepository<Guid, Like> likeRepository, IPostRankingCache cache)
 	{
 		_blogRepository = repository;
+		_likeRepository = likeRepository;
 		_cache = cache;
 	}
 
