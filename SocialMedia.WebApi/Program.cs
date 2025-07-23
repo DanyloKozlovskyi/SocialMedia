@@ -90,6 +90,9 @@ builder.Services.AddAuthentication(options =>
 	};
 });
 
+builder.Services.AddScoped<ImageBackfill>();
+builder.Services.AddHostedService<ImageBackfillWorker>();
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddEndpointsApiExplorer();

@@ -20,7 +20,9 @@ public class R2ImageRepository : IImageRepository
 			BucketName = Bucket,
 			Key = key,
 			InputStream = fileStream,
-			ContentType = contentType
+			ContentType = contentType,
+			DisablePayloadSigning = true,
+			DisableDefaultChecksumValidation = true
 		};
 		await _s3.PutObjectAsync(req);
 	}

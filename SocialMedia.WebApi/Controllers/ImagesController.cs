@@ -23,9 +23,11 @@ public class ImagesController : ControllerBase
 	}
 
 	[HttpGet("{*key}")]
+	[AllowAnonymous]
 	public async Task<IActionResult> Download(string key)
 	{
-		var stream = await _imageService.DownloadImageAsync(key);
+		string decodedKey = Uri.UnescapeDataString(key);
+		var stream = await _imageService.DownloadImageAsync(decodedKey);
 		if (stream == null)
 			return NotFound();
 
