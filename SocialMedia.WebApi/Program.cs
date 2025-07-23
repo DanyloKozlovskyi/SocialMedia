@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using SocialMedia.Application;
 using SocialMedia.Application.BlogPosts;
 using SocialMedia.Application.Identity;
+using SocialMedia.Application.Images;
 using SocialMedia.Application.Options;
 using SocialMedia.Application.Utilities;
 using SocialMedia.Domain.Entities.Identity;
@@ -101,7 +102,7 @@ builder.Services.AddCors(options =>
 {
 	options.AddDefaultPolicy(policyBuilder =>
 	{
-		policyBuilder.WithOrigins("http://localhost:3000")
+		policyBuilder.WithOrigins("http://localhost:3000", "http://localhost:8000")
 		.AllowAnyHeader()
 		.AllowAnyMethod();
 	});
@@ -113,6 +114,7 @@ builder.Services.AddScoped<IBlogRepository, BlogRepositoryCacheDecorator>();
 builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IImageRepository, R2ImageRepository>();
+builder.Services.AddScoped<IImageService, ImageService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 

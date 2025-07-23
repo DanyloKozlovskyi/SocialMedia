@@ -1,6 +1,6 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
-using SocialMedia.Application.BlogPosts;
+using SocialMedia.Application.Images;
 
 namespace SocialMedia.Infrastructure.Persistence.Blob;
 public class R2ImageRepository : IImageRepository
@@ -42,5 +42,18 @@ public class R2ImageRepository : IImageRepository
 			BucketName = Bucket,
 			Key = key
 		});
+	}
+
+	public string GeneratePresignedUploadUrl(string key, string contentType, double expiresInMinutes = 15)
+	{
+		var request = new GetPreSignedUrlRequest
+		{
+			BucketName = Bucket,
+			Key = key,
+			Verb = HttpVerb.PUT,
+			Expires = DateTime.UtcNow.AddMinutes(expiresInMinutes),
+			ContentType = contentType
+		};
+		return _s3.GetPreSignedURL(request);
 	}
 }

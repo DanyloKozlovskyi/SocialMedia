@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SocialMedia.Domain.Entities;
 using SocialMedia.Domain.Entities.Identity;
-using SocialMedia.Infrastructure.Persistence.Configurations;
+using SocialMedia.Infrastructure.Persistence.Sql.Configurations;
 
 namespace SocialMedia.Infrastructure.Persistence.Sql
 {
