@@ -39,7 +39,7 @@ public sealed class BlogPostSeeder : IBlogPostSeeder
 			{
 				Id = Guid.NewGuid(),
 				Description = desc,
-				Image64 = img.Base64DataUri,
+				//Image64 = img.Base64DataUri,
 				PostedAt = DateTime.UtcNow.AddMinutes(-_rng.Next(0, 60 * 24 * 30)), // last 30 days
 				UserId = userId
 			});

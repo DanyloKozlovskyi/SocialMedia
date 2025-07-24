@@ -12,7 +12,6 @@ public static class BlogPostExtension
 		{
 			Id = post.Id,
 			Description = post.Description,
-			Image64 = post.Image64,
 			ImageKey = post.ImageKey,
 			ImageContentType = post.ImageContentType,
 			PostedAt = post.PostedAt,
@@ -32,7 +31,6 @@ public static class BlogPostExtension
 		{
 			Id = post.Id,
 			Description = post.Description,
-			Image64 = post.Image64,
 			ImageKey = post.ImageKey,
 			ImageContentType = post.ImageContentType,
 			PostedAt = post.PostedAt,

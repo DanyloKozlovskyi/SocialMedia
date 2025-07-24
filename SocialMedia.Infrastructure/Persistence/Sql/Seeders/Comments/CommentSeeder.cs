@@ -53,7 +53,7 @@ public sealed class CommentSeeder : ICommentSeeder
 			{
 				Id = Guid.NewGuid(),
 				Description = _faker.Lorem.Sentence(_rng.Next(5, 14)),
-				Image64 = img64,
+				//Image64 = img64,
 				PostedAt = DateTime.UtcNow.AddMinutes(-_rng.Next(0, 60 * 24 * 30)),
 				UserId = authorId,
 				ParentId = parentId
