@@ -19,7 +19,7 @@ public class ImageService : IImageService
 		return (key, presignUrl, contentType);
 	}
 
-	public Task<Stream> DownloadImageAsync(string key)
+	public Task<ImageDownloadResult> DownloadImageAsync(string key)
 		=> _repository.DownloadAsync(key);
 
 	public Task DeleteImageAsync(string key)

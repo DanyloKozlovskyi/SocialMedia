@@ -3,7 +3,7 @@ public interface IImageService
 {
 	public (string key, string uploadUrl, string contentType) GetUploadUrl(string fileName);
 
-	public Task<Stream> DownloadImageAsync(string key);
+	public Task<ImageDownloadResult> DownloadImageAsync(string key);
 
 	public Task DeleteImageAsync(string key);
 

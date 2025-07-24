@@ -27,12 +27,11 @@ public class ImagesController : ControllerBase
 	public async Task<IActionResult> Download(string key)
 	{
 		string decodedKey = Uri.UnescapeDataString(key);
-		var stream = await _imageService.DownloadImageAsync(decodedKey);
-		if (stream == null)
+		var downloadResult = await _imageService.DownloadImageAsync(decodedKey);
+		if (downloadResult == null)
 			return NotFound();
 
-		// Optionally infer content type from key extension
-		return File(stream, "application/octet-stream");
+		return File(downloadResult.ImageStream, downloadResult.ContentType ?? "application/octet-stream");
 	}
 
 	[HttpDelete("{key}")]

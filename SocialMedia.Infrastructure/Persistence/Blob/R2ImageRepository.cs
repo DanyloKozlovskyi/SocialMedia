@@ -27,14 +27,39 @@ public class R2ImageRepository : IImageRepository
 		await _s3.PutObjectAsync(req);
 	}
 
-	public async Task<Stream> DownloadAsync(string key)
+	public async Task<ImageDownloadResult> DownloadAsync(string key)
 	{
-		var req = new GetObjectRequest { BucketName = Bucket, Key = key };
-		using var resp = await _s3.GetObjectAsync(req);
-		var ms = new MemoryStream();
-		await resp.ResponseStream.CopyToAsync(ms);
-		ms.Position = 0;
-		return ms;
+		try
+		{
+			var req = new GetObjectRequest { BucketName = Bucket, Key = key };
+
+			using var resp = await _s3.GetObjectAsync(req);
+
+			string contentType = resp.Headers.ContentType;
+
+			var ms = new MemoryStream();
+			await resp.ResponseStream.CopyToAsync(ms);
+			ms.Position = 0;
+
+			return new ImageDownloadResult
+			{
+				ImageStream = ms,
+				ContentType = contentType
+			};
+		}
+		catch (AmazonS3Exception s3Ex)
+		{
+			// Log the specific S3 error, especially "NoSuchKey"
+			Console.WriteLine($"Amazon S3 Error in S3BlobRepository.DownloadAsync for key '{key}': {s3Ex.Message}");
+			Console.WriteLine($"S3 Error Code: {s3Ex.ErrorCode}");
+
+			return null;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"An unexpected error occurred in S3BlobRepository.DownloadAsync for key '{key}': {ex.Message}");
+			return null;
+		}
 	}
 
 	public async Task DeleteAsync(string key)
