@@ -83,4 +83,15 @@ public class R2ImageRepository : IImageRepository
 		};
 		return _s3.GetPreSignedURL(request);
 	}
+	public string GeneratePresignedDownloadUrl(string key, double expiresInMinutes = 15)
+	{
+		var getRequest = new GetPreSignedUrlRequest
+		{
+			BucketName = Bucket,
+			Key = key,
+			Verb = HttpVerb.GET,
+			Expires = DateTime.UtcNow.AddMinutes(expiresInMinutes)
+		};
+		return _s3.GetPreSignedURL(getRequest);
+	}
 }

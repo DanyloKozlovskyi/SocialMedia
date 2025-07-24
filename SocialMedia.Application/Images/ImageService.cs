@@ -27,4 +27,9 @@ public class ImageService : IImageService
 
 	public Task UploadAsync(Stream fileStream, string key, string contentType)
 	=> _repository.UploadAsync(fileStream, key, contentType);
+
+	public string GetDownloadUrl(string key)
+	{
+		return _repository.GeneratePresignedDownloadUrl(key);
+	}
 }

@@ -8,4 +8,5 @@ public interface IImageService
 	public Task DeleteImageAsync(string key);
 
 	public Task UploadAsync(Stream fileStream, string key, string contentType);
+	public string GetDownloadUrl(string key);
 }

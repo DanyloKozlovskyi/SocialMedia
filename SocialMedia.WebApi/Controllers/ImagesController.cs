@@ -40,4 +40,15 @@ public class ImagesController : ControllerBase
 		await _imageService.DeleteImageAsync(key);
 		return NoContent();
 	}
+
+	[HttpGet("download-url")]
+	[AllowAnonymous]
+	public IActionResult GetDownloadUrl([FromQuery] string key)
+	{
+		if (string.IsNullOrEmpty(key))
+			return BadRequest(new { error = "Missing `key` parameter" });
+
+		var url = _imageService.GetDownloadUrl(key);
+		return Ok(new { key, url });
+	}
 }

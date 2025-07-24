@@ -13,6 +13,8 @@ public static class BlogPostExtension
 			Id = post.Id,
 			Description = post.Description,
 			Image64 = post.Image64,
+			ImageKey = post.ImageKey,
+			ImageContentType = post.ImageContentType,
 			PostedAt = post.PostedAt,
 			UserId = post.UserId,
 			User = new UserResponseModel() { UserName = post.User?.Name, Description = post.User?.Description, Logo = post.User?.Logo, Id = post.UserId },
@@ -20,7 +22,7 @@ public static class BlogPostExtension
 			Comments = null,
 			CommentCount = post.Comments != null ? post.Comments.Count() : 0,
 			IsLiked = userRequestId != null ? post.Likes.Any(x => x.UserId == userRequestId && x.IsLiked) : false,
-			IsCommented = userRequestId != null ? post.Comments.Any(x => x.UserId == userRequestId) : false
+			IsCommented = userRequestId != null ? post.Comments.Any(x => x.UserId == userRequestId) : false,
 		};
 	}
 
@@ -31,6 +33,8 @@ public static class BlogPostExtension
 			Id = post.Id,
 			Description = post.Description,
 			Image64 = post.Image64,
+			ImageKey = post.ImageKey,
+			ImageContentType = post.ImageContentType,
 			PostedAt = post.PostedAt,
 			UserId = post.UserId,
 			User = post.User != null ? new UserResponseModel
