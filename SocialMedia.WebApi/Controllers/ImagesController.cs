@@ -51,4 +51,24 @@ public class ImagesController : ControllerBase
 		var url = _imageService.GetDownloadUrl(key);
 		return Ok(new { key, url });
 	}
+
+	[HttpGet("validate-content")]
+	[AllowAnonymous]
+	public async Task<IActionResult> ValidateContent([FromQuery] string key)
+	{
+		if (string.IsNullOrWhiteSpace(key))
+			return BadRequest(new { error = "Missing `key` parameter" });
+
+		bool isValid;
+		try
+		{
+			isValid = await _imageService.ValidateContentAsync(key);
+		}
+		catch (Exception ex)
+		{
+			return StatusCode(500, new { error = "Validation failed", details = ex.Message });
+		}
+
+		return Ok(new { key, isValid });
+	}
 }
