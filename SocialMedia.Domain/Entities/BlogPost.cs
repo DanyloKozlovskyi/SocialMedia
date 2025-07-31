@@ -6,7 +6,8 @@ public class BlogPost : IKeyedEntity<Guid>
 {
 	public Guid Id { get; set; }
 	public string? Description { get; set; }
-	public string? Image64 { get; set; }
+	public string? ImageKey { get; set; }
+	public string? ImageContentType { get; set; }
 	public DateTime PostedAt { get; set; } = DateTime.UtcNow;
 	public Guid UserId { get; set; }
 	public ApplicationUser? User { get; set; }

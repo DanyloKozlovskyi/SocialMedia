@@ -8,6 +8,8 @@ public class ApplicationUser : IdentityUser<Guid>
 	public DateTime RefreshTokenExpirationDateTime { get; set; }
 	public ICollection<BlogPost>? Posts { get; set; }
 	public virtual ICollection<Like>? Likes { get; set; }
-	public string? Logo { get; set; }
 	public string? Description { get; set; }
+
+	public string? LogoKey { get; set; }
+	public string? LogoContentType { get; set; }
 }

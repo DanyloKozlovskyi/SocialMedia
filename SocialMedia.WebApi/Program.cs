@@ -1,3 +1,5 @@
+using Amazon.Runtime;
+using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -8,20 +10,43 @@ using Microsoft.IdentityModel.Tokens;
 using SocialMedia.Application;
 using SocialMedia.Application.BlogPosts;
 using SocialMedia.Application.Identity;
+using SocialMedia.Application.Images;
 using SocialMedia.Application.Options;
 using SocialMedia.Application.Utilities;
 using SocialMedia.Domain.Entities.Identity;
 using SocialMedia.Infrastructure.Caching.Redis;
-using SocialMedia.Infrastructure.Persistence;
-using SocialMedia.Infrastructure.Persistence.Repositories;
-using SocialMedia.Infrastructure.Persistence.Seeders.BlogPosts;
-using SocialMedia.Infrastructure.Persistence.Seeders.Comments;
-using SocialMedia.Infrastructure.Persistence.Seeders.Likes;
-using SocialMedia.Infrastructure.Persistence.Seeders.Roles;
-using SocialMedia.Infrastructure.Persistence.Seeders.Users;
+using SocialMedia.Infrastructure.Persistence.Blob;
+using SocialMedia.Infrastructure.Persistence.Blob.Backfills;
+using SocialMedia.Infrastructure.Persistence.Sql;
+using SocialMedia.Infrastructure.Persistence.Sql.Repositories;
+using SocialMedia.Infrastructure.Persistence.Sql.Seeders.BlogPosts;
+using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Comments;
+using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Likes;
+using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Roles;
+using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Users;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
+
+DotNetEnv.Env.Load();
+
+var accountId = Environment.GetEnvironmentVariable("CF_ACCOUNT_ID")!;
+var accessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID")!;
+var secretKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY")!;
+
+// 3) Configure and register IAmazonS3
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+	var config = new AmazonS3Config
+	{
+		ServiceURL = $"https://{accountId}.r2.cloudflarestorage.com",
+		ForcePathStyle = true,
+		AuthenticationRegion = "auto"   // R2 doesn’t use AWS regions
+	};
+
+	var creds = new BasicAWSCredentials(accessKey, secretKey);
+	return new AmazonS3Client(creds, config);
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -66,6 +91,10 @@ builder.Services.AddAuthentication(options =>
 	};
 });
 
+builder.Services.AddScoped<BlogBackfillService>();
+builder.Services.AddScoped<LogoBackfillService>();
+builder.Services.AddHostedService<ImageBackfillWorker>();
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -78,7 +107,7 @@ builder.Services.AddCors(options =>
 {
 	options.AddDefaultPolicy(policyBuilder =>
 	{
-		policyBuilder.WithOrigins("http://localhost:3000")
+		policyBuilder.WithOrigins("http://localhost:3000", "http://localhost:8000")
 		.AllowAnyHeader()
 		.AllowAnyMethod();
 	});
@@ -89,6 +118,9 @@ builder.Services.AddScoped<IPostRankingCache, PostRankingCache>();
 builder.Services.AddScoped<IBlogRepository, BlogRepositoryCacheDecorator>();
 builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddScoped<IBlogService, BlogService>();
+builder.Services.AddScoped<IImageRepository, R2ImageRepository>();
+builder.Services.AddScoped<IUploadUrlFactory, UploadUrlFactory>();
+builder.Services.AddScoped<IImageService, ImageService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 

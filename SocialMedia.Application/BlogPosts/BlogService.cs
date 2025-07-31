@@ -78,7 +78,11 @@ public class BlogService : IBlogService
 	}
 	public async Task<PostResponseModel?> GetById(Guid id, Guid? userId = null)
 	{
-		return await _blogRepository.Get().ToPostResponseModelQueryable(userRequestId: userId).FirstOrDefaultAsync(x => x.Id == id);
+		return await _blogRepository
+			.Get(whereExpression: x => x.Id == id, asNoTracking: true)
+			.Where(p => p.Id == id)
+			.ToPostResponseModelQueryable(userId)
+			.FirstOrDefaultAsync();
 	}
 	public async Task<IEnumerable<PostResponseModel>?> GetByParentId(Guid parentId, Guid? userId = null, int page = 1, int pageSize = 30)
 	{
@@ -101,7 +105,7 @@ public class BlogService : IBlogService
 
 	public async Task<Like?> GetLike(Guid? postId, Guid? userId)
 	{
-		return await _likeRepository.GetByFilterNoTracking(x => x.PostId == postId && x.UserId == userId && x.IsLiked).FirstOrDefaultAsync();
+		return await _likeRepository.Get(whereExpression: x => x.PostId == postId && x.UserId == userId && x.IsLiked).FirstOrDefaultAsync();
 	}
 
 	public async Task<IEnumerable<Like>?> GetLikes(Guid? postId)

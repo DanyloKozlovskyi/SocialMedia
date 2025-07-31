@@ -16,6 +16,5 @@ public class RegisterDto
 	[Required(ErrorMessage = "Confirm Password can't be blank")]
 	[Compare("Password", ErrorMessage = "Password and confirm password do not match")]
 	public string ConfirmPassword { get; set; } = string.Empty;
-	public string? Logo { get; set; }
 	public string? Description { get; set; }
 }

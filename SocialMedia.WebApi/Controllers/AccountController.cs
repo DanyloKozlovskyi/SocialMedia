@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SocialMedia.Application.Identity;
 using SocialMedia.Application.Identity.Dtos;
+using SocialMedia.Application.Images;
 using SocialMedia.Domain.Entities.Identity;
 using System.Security.Claims;
 
@@ -14,20 +15,22 @@ namespace SocialMedia.WebApi.Controllers
 	[ApiController]
 	public class AccountController : ControllerBase
 	{
-		private readonly UserManager<ApplicationUser> userManager;
-		private readonly SignInManager<ApplicationUser> signInManager;
+		private readonly UserManager<ApplicationUser> _userManager;
+		private readonly SignInManager<ApplicationUser> _signInManager;
 		private readonly RoleManager<ApplicationRole> roleManager;
-		private readonly IJwtService jwtService;
+		private readonly IJwtService _jwtService;
+		private readonly IImageRepository _imageRepository;
 		private readonly IMapper mapper;
 
 		public AccountController(UserManager<ApplicationUser> userMng,
-			SignInManager<ApplicationUser> signInMng, RoleManager<ApplicationRole> roleMng, IJwtService jwtSvc, IMapper mapp)
+			SignInManager<ApplicationUser> signInMng, RoleManager<ApplicationRole> roleMng, IJwtService jwtSvc, IMapper mapp, IImageRepository imageRepository)
 		{
-			userManager = userMng;
-			signInManager = signInMng;
+			_userManager = userMng;
+			_signInManager = signInMng;
 			roleManager = roleMng;
-			jwtService = jwtSvc;
+			_jwtService = jwtSvc;
 			mapper = mapp;
+			_imageRepository = imageRepository;
 		}
 
 		private Guid? GetUserId()
@@ -42,7 +45,7 @@ namespace SocialMedia.WebApi.Controllers
 		public async Task<IActionResult> GetPersonalInfo()
 		{
 			var userId = GetUserId();
-			var user = await userManager.Users.FirstOrDefaultAsync(x => x.Id == userId);
+			var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Id == userId);
 			return Ok(user);
 		}
 
@@ -50,7 +53,7 @@ namespace SocialMedia.WebApi.Controllers
 		[AllowAnonymous]
 		public async Task<IActionResult> GetUserInfo([FromRoute] Guid userId)
 		{
-			var user = await userManager.Users.FirstOrDefaultAsync(x => x.Id == userId);
+			var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Id == userId);
 			return Ok(user);
 		}
 
@@ -61,7 +64,7 @@ namespace SocialMedia.WebApi.Controllers
 			if (string.IsNullOrWhiteSpace(query))
 				return BadRequest("Query is required.");
 
-			var users = await userManager.Users
+			var users = await _userManager.Users
 				.Where(u => u.Name.ToLower().Contains(query.ToLower()))
 				.OrderByDescending(u => (u.Likes.Count() * 0.1) + u.Posts.Count())
 				.Skip((page - 1) * pageSize)
@@ -77,19 +80,26 @@ namespace SocialMedia.WebApi.Controllers
 		{
 			var userId = GetUserId();
 			var userIdString = userId.ToString();
-			var user = await userManager.FindByIdAsync(userIdString);
+			var user = await _userManager.FindByIdAsync(userIdString);
 			if (user == null)
 				return NotFound();
+
+			string oldKey = user.LogoKey;
+			string newKey = updateUser.LogoKey;
 
 			// Update fields
 			user.Name = updateUser.Name;
 			user.Description = updateUser.Description;
-			user.Logo = updateUser.Logo;
+			user.LogoKey = updateUser.LogoKey;
+			user.LogoContentType = updateUser.LogoContentType;
 
-			var result = await userManager.UpdateAsync(user);
+			var result = await _userManager.UpdateAsync(user);
 
 			if (!result.Succeeded)
 				return BadRequest(result.Errors);
+
+			else if (!string.IsNullOrEmpty(oldKey) && oldKey != newKey)
+				await _imageRepository.DeleteAsync(oldKey);
 
 			return Ok("User updated successfully");
 		}
@@ -111,7 +121,7 @@ namespace SocialMedia.WebApi.Controllers
 			IdentityResult result = null;
 			try
 			{
-				result = await userManager.CreateAsync(user, registerDto.Password);
+				result = await _userManager.CreateAsync(user, registerDto.Password);
 			}
 			catch (Exception exc)
 			{
@@ -122,13 +132,13 @@ namespace SocialMedia.WebApi.Controllers
 			{
 				// sign-in
 				// isPersister: false - must be deleted automatically when the browser is closed
-				await signInManager.SignInAsync(user, isPersistent: false);
+				await _signInManager.SignInAsync(user, isPersistent: false);
 
-				var authenticationResponse = jwtService.CreateJwtToken(user);
+				var authenticationResponse = _jwtService.CreateJwtToken(user);
 				user.RefreshToken = authenticationResponse.RefreshToken;
 
 				user.RefreshTokenExpirationDateTime = authenticationResponse.RefreshTokenExpirationDateTime;
-				await userManager.UpdateAsync(user);
+				await _userManager.UpdateAsync(user);
 
 				return Ok(authenticationResponse);
 			}
@@ -141,7 +151,7 @@ namespace SocialMedia.WebApi.Controllers
 		[Authorize]
 		public async Task<IActionResult> IsEmailAlreadyRegistered(string email)
 		{
-			ApplicationUser? user = await userManager.FindByEmailAsync(email);
+			ApplicationUser? user = await _userManager.FindByEmailAsync(email);
 
 			if (user == null)
 			{
@@ -161,24 +171,24 @@ namespace SocialMedia.WebApi.Controllers
 				return Problem(errorMessages);
 			}
 
-			var result = await signInManager.PasswordSignInAsync(loginDTO.Email, loginDTO.Password, isPersistent: false, lockoutOnFailure: false);
+			var result = await _signInManager.PasswordSignInAsync(loginDTO.Email, loginDTO.Password, isPersistent: false, lockoutOnFailure: false);
 
 			if (result.Succeeded)
 			{
-				ApplicationUser? user = await userManager.FindByEmailAsync(loginDTO.Email);
+				ApplicationUser? user = await _userManager.FindByEmailAsync(loginDTO.Email);
 
 				if (user == null)
 					return NoContent();
 
-				await signInManager.SignInAsync(user, isPersistent: false);
+				await _signInManager.SignInAsync(user, isPersistent: false);
 
-				var authenticationResponse = jwtService.CreateJwtToken(user);
+				var authenticationResponse = _jwtService.CreateJwtToken(user);
 				user.RefreshToken = authenticationResponse.RefreshToken;
 
 				user.RefreshTokenExpirationDateTime = authenticationResponse.RefreshTokenExpirationDateTime;
 				try
 				{
-					await userManager.UpdateAsync(user);
+					await _userManager.UpdateAsync(user);
 				}
 				catch (Exception exc)
 				{
@@ -194,7 +204,7 @@ namespace SocialMedia.WebApi.Controllers
 		[Authorize]
 		public async Task<IActionResult> Logout()
 		{
-			await signInManager.SignOutAsync();
+			await _signInManager.SignOutAsync();
 
 			return NoContent();
 		}
@@ -211,7 +221,7 @@ namespace SocialMedia.WebApi.Controllers
 			string? token = tokenModel.Token;
 			string? refreshToken = tokenModel.RefreshToken;
 
-			ClaimsPrincipal? principal = jwtService.GetPrincipalFromJwtToken(token);
+			ClaimsPrincipal? principal = _jwtService.GetPrincipalFromJwtToken(token);
 			if (principal == null)
 			{
 				return Unauthorized("Invalid access token");
@@ -219,19 +229,19 @@ namespace SocialMedia.WebApi.Controllers
 
 			string? email = principal.FindFirstValue(ClaimTypes.Email);
 
-			ApplicationUser? user = await userManager.FindByEmailAsync(email);
+			ApplicationUser? user = await _userManager.FindByEmailAsync(email);
 
 			if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpirationDateTime <= DateTime.UtcNow)
 			{
 				return Unauthorized("Invalid refresh token");
 			}
 
-			AuthenticationResponse authenticationResponse = jwtService.CreateJwtToken(user);
+			AuthenticationResponse authenticationResponse = _jwtService.CreateJwtToken(user);
 
 			user.RefreshToken = authenticationResponse.RefreshToken;
 			user.RefreshTokenExpirationDateTime = authenticationResponse.RefreshTokenExpirationDateTime;
 
-			await userManager.UpdateAsync(user);
+			await _userManager.UpdateAsync(user);
 
 			return Ok(authenticationResponse);
 		}
