@@ -1,9 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using SocialMedia.Application.Images;
 
-namespace SocialMedia.Infrastructure.Persistence.Blob;
+namespace SocialMedia.Infrastructure.Persistence.Blob.Backfills;
 public class ImageBackfillWorker : BackgroundService
 {
 	private readonly IServiceProvider _sp;
@@ -16,10 +15,11 @@ public class ImageBackfillWorker : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		if (!_cfg.GetValue<bool>("RunImageBackfill")) return;
+		if (!_cfg.GetValue<bool>("RunImageBackfillLogo")) return;
 
 		using var scope = _sp.CreateScope();
-		var job = scope.ServiceProvider.GetRequiredService<ImageBackfill>();
+		//var job = scope.ServiceProvider.GetRequiredService<ImageBackfill>();
+		var job = scope.ServiceProvider.GetRequiredService<LogoBackfillService>();
 		await job.RunAsync(stoppingToken);
 	}
 }

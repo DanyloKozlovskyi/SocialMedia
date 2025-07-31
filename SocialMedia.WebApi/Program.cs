@@ -16,6 +16,7 @@ using SocialMedia.Application.Utilities;
 using SocialMedia.Domain.Entities.Identity;
 using SocialMedia.Infrastructure.Caching.Redis;
 using SocialMedia.Infrastructure.Persistence.Blob;
+using SocialMedia.Infrastructure.Persistence.Blob.Backfills;
 using SocialMedia.Infrastructure.Persistence.Sql;
 using SocialMedia.Infrastructure.Persistence.Sql.Repositories;
 using SocialMedia.Infrastructure.Persistence.Sql.Seeders.BlogPosts;
@@ -90,7 +91,8 @@ builder.Services.AddAuthentication(options =>
 	};
 });
 
-builder.Services.AddScoped<ImageBackfill>();
+builder.Services.AddScoped<BlogBackfillService>();
+builder.Services.AddScoped<LogoBackfillService>();
 builder.Services.AddHostedService<ImageBackfillWorker>();
 
 builder.Services.AddAuthorization();
