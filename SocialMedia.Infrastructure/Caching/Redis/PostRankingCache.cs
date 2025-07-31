@@ -47,15 +47,16 @@ public class PostRankingCache : IPostRankingCache
 		  .Select(x => x.Id)
 		  .ToListAsync();
 
-		// 2) Write them into Redis (ZADD or simple LIST)
 		var db = _redis.GetDatabase();
-		var batch = db.CreateBatch();
-		var deleteTask = batch.KeyDeleteAsync(ZSET_KEY);
-		var pushTask = batch.ListRightPushAsync(ZSET_KEY, topIds.Select(g => (RedisValue)g.ToString()).ToArray());
 
-		batch.Execute();
+		var deleteTask = db.KeyDeleteAsync(ZSET_KEY);
+		var pushTask = db.ListRightPushAsync(
+							ZSET_KEY,
+							topIds.Select(id => (RedisValue)id.ToString()).ToArray()
+						 );
 
-		await Task.WhenAll(deleteTask, pushTask).ConfigureAwait(false);
+		await Task.WhenAll(deleteTask, pushTask);
+
 		return topIds;
 	}
 
