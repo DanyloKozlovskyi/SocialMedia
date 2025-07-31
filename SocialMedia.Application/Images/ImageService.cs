@@ -4,15 +4,17 @@ using MimeDetective.Definitions;
 public class ImageService : IImageService
 {
 	private readonly IImageRepository _repository;
+	private readonly IUploadUrlFactory _factory;
 
 	private static readonly IContentInspector _inspector = new ContentInspectorBuilder
 	{
 		Definitions = DefaultDefinitions.All()
 	}.Build();
 
-	public ImageService(IImageRepository repository)
+	public ImageService(IImageRepository repository, IUploadUrlFactory factory)
 	{
 		_repository = repository;
+		_factory = factory;
 	}
 
 	public async Task<bool> ValidateContentAsync(string key)
@@ -41,10 +43,23 @@ public class ImageService : IImageService
 		var key = $"{DateTime.UtcNow:yyyy/MM/dd}/{Guid.NewGuid()}-{fileName}";
 		var contentType = MimeTypeHelper.Detect(fileName) ?? "application/octet-stream";
 
-		// Use concrete repo to generate presigned URL
 		var presignUrl = _repository.GeneratePresignedUploadUrl(key, contentType)
 			?? throw new InvalidOperationException("Presign not supported by this repository");
 		return (key, presignUrl, contentType);
+	}
+
+	public (string key, string uploadUrl, string contentType) GetUploadUrlForBlog(string fileName)
+	{
+		var (key, presignedUrl, contentType) = _factory.GetBlogUploadUrl(fileName);
+
+		return (key, presignedUrl, contentType);
+	}
+
+	public (string key, string uploadUrl, string contentType) GetUploadUrlForLogo(string fileName)
+	{
+		var (key, presignedUrl, contentType) = _factory.GetLogoUploadUrl(fileName);
+
+		return (key, presignedUrl, contentType);
 	}
 
 	public Task<ImageDownloadResult> DownloadImageAsync(string key)

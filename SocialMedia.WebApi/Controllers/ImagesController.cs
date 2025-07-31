@@ -71,4 +71,20 @@ public class ImagesController : ControllerBase
 
 		return Ok(new { key, isValid });
 	}
+
+	[HttpGet("upload-url/blog")]
+	[AllowAnonymous]
+	public IActionResult GetUploadBlogUrl([FromQuery] string fileName)
+	{
+		var (key, uploadUrl, contentType) = _imageService.GetUploadUrlForBlog(fileName);
+		return Ok(new { key, uploadUrl, contentType });
+	}
+
+	[HttpGet("upload-url/logo")]
+	[AllowAnonymous]
+	public IActionResult GetUploadLogoUrl([FromQuery] string fileName)
+	{
+		var (key, uploadUrl, contentType) = _imageService.GetUploadUrlForLogo(fileName);
+		return Ok(new { key, uploadUrl, contentType });
+	}
 }

@@ -117,6 +117,7 @@ builder.Services.AddScoped<IBlogRepository, BlogRepositoryCacheDecorator>();
 builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IImageRepository, R2ImageRepository>();
+builder.Services.AddScoped<IUploadUrlFactory, UploadUrlFactory>();
 builder.Services.AddScoped<IImageService, ImageService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
