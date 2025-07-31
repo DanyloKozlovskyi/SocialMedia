@@ -17,54 +17,54 @@ public class LogoBackfillService : ImageBackfillServiceBase
 
 	public async Task RunAsync(CancellationToken ct)
 	{
-		while (true)
-		{
-			// 1) grab a batch of users with an inline Logo but no LogoKey yet
-			var users = await _db.Users
-				.Where(u => u.Logo != null && u.LogoKey == null)
-				.OrderBy(u => u.Id)
-				.Take(BatchSize)
-				.ToListAsync(ct);
+		//while (true)
+		//{
+		//	// 1) grab a batch of users with an inline Logo but no LogoKey yet
+		//	var users = await _db.Users
+		//		.Where(u => u.Logo != null && u.LogoKey == null)
+		//		.OrderBy(u => u.Id)
+		//		.Take(BatchSize)
+		//		.ToListAsync(ct);
 
-			if (users.Count == 0)
-			{
-				_logger.LogInformation("Logo backfill complete.");
-				break;
-			}
+		//	if (users.Count == 0)
+		//	{
+		//		_logger.LogInformation("Logo backfill complete.");
+		//		break;
+		//	}
 
-			foreach (var user in users)
-			{
-				try
-				{
-					if (!TryDecodeBase64(user.Logo!, out var bytes))
-					{
-						_logger.LogWarning("Invalid Base64 logo for user {UserId}", user.Id);
-						continue;
-					}
+		//	foreach (var user in users)
+		//	{
+		//		try
+		//		{
+		//			if (!TryDecodeBase64(user.Logo!, out var bytes))
+		//			{
+		//				_logger.LogWarning("Invalid Base64 logo for user {UserId}", user.Id);
+		//				continue;
+		//			}
 
-					var (mime, ext) = DetectMimeFromBase64(user.Logo!, bytes);
-					await using var stream = new MemoryStream(bytes, writable: false);
+		//			var (mime, ext) = DetectMimeFromBase64(user.Logo!, bytes);
+		//			await using var stream = new MemoryStream(bytes, writable: false);
 
-					var fileName = $"logo-{user.Id}{ext}";
-					var (key, _, _) = _uploadFactory.GetLogoUploadUrl(fileName);
+		//			var fileName = $"logo-{user.Id}{ext}";
+		//			var (key, _, _) = _uploadFactory.GetLogoUploadUrl(fileName);
 
-					// 5) upload to your single R2 bucket under "logos/"
-					await _imageService.UploadAsync(stream, key, mime);
+		//			// 5) upload to your single R2 bucket under "logos/"
+		//			await _imageService.UploadAsync(stream, key, mime);
 
-					user.LogoKey = key;
-					user.LogoContentType = mime;
+		//			user.LogoKey = key;
+		//			user.LogoContentType = mime;
 
-					// optionally clear the inline column:
-					// user.Logo = null;
-				}
-				catch (Exception ex)
-				{
-					_logger.LogError(ex, "Failed to backfill logo for user {UserId}", user.Id);
-				}
-			}
+		//			// optionally clear the inline column:
+		//			// user.Logo = null;
+		//		}
+		//		catch (Exception ex)
+		//		{
+		//			_logger.LogError(ex, "Failed to backfill logo for user {UserId}", user.Id);
+		//		}
+		//	}
 
-			await _db.SaveChangesAsync(ct);
-		}
+		//	await _db.SaveChangesAsync(ct);
+		//}
 	}
 }
 

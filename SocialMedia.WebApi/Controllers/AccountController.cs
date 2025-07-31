@@ -84,7 +84,8 @@ namespace SocialMedia.WebApi.Controllers
 			// Update fields
 			user.Name = updateUser.Name;
 			user.Description = updateUser.Description;
-			user.Logo = updateUser.Logo;
+			user.LogoKey = updateUser.LogoKey;
+			user.LogoContentType = updateUser.LogoContentType;
 
 			var result = await userManager.UpdateAsync(user);
 
