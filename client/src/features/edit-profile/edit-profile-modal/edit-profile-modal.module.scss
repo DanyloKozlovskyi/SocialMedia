@@ -1,0 +1,41 @@
+.closeIcon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+}
+
+.uploadFile {
+  margin-top: 50px;
+}
+
+.textAreaContainer {
+  margin-top: 50px;
+}
+
+.row {
+  display: flex;
+}
+
+.label {
+  margin-left: 26px;
+}
+
+.textArea {
+  max-width: 300px;
+  display: flex;
+  justify-content: center;
+}
+
+.buttonRow {
+  margin: 20px 0;
+  padding-right: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

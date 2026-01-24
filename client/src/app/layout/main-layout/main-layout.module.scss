@@ -1,0 +1,29 @@
+body {
+  box-sizing: border-box;
+  background-color: var(--white);
+  margin: 0;
+  font-family: sans-serif;
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.left {
+  flex: 2;
+  padding: 20px;
+}
+
+.mainContent {
+  flex: 3;
+  background-color: var(--white);
+  position: relative;
+}
+
+.right {
+  width: 300px;
+  padding: 20px;
+  flex: 2;
+  min-width: 300px;
+}

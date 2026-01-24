@@ -1,0 +1,19 @@
+.editProfileButton {
+  position: absolute;
+  top: 130px;
+  left: 70%;
+  padding: 6px 16px;
+  border: 1px solid #ccc;
+  border-radius: 20px; /* full rounded */
+  font-size: 14px;
+  font-weight: 600;
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  z-index: 1;
+  overflow: hidden;
+
+  &:hover {
+    background-color: #f6f6f8;
+  }
+}
