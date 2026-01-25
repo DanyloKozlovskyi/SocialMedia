@@ -4,6 +4,7 @@ import LightboxImage from "@shared/ui/lightbox-image";
 import { useRouter } from "next/navigation";
 import { Blog } from "@entities/blog-post";
 import { fetchImageAsBlobURL } from "@entities/image";
+import { getSignedVideoUrl } from "@entities/video";
 import { UserLogo } from "../user-logo";
 import { IconBar } from "./components";
 import classes from "./blog-post.module.scss";
@@ -19,7 +20,8 @@ interface BlogPostProps extends Blog {
 const BlogPost = ({
   className,
   id,
-  imageKey,
+  mediaKey,
+  mediaType,
   user,
   description,
   isLiked,
@@ -28,7 +30,7 @@ const BlogPost = ({
   commentCount,
   width = 500,
 }: BlogPostProps) => {
-  const [src, setSrc] = useState<string>("");
+  const [mediaSrc, setMediaSrc] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -44,25 +46,31 @@ const BlogPost = ({
   };
 
   useEffect(() => {
-    if (!imageKey) return;
+    if (!mediaKey || !mediaType) {
+      setMediaSrc(null);
+      return;
+    }
 
-    let objectUrl: string;
-    fetchImageAsBlobURL(imageKey)
-      .then((url: string) => {
-        objectUrl = url;
-        setSrc(url);
-      })
-      .catch((err: DOMException) => {
-        console.error(err);
-        //setError(err.message);
-      });
-
-    return () => {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [imageKey]);
+    if (mediaType === "video") {
+      getSignedVideoUrl(mediaKey)
+        .then((url: string) => {
+          setMediaSrc(url);
+        })
+        .catch((err) => {
+          console.error("Failed to load video URL:", err);
+          setMediaSrc(null);
+        });
+    } else if (mediaType === "image") {
+      fetchImageAsBlobURL(mediaKey)
+        .then((url: string) => {
+          setMediaSrc(url);
+        })
+        .catch((err: DOMException) => {
+          console.error("Failed to load image:", err);
+          setMediaSrc(null);
+        });
+    }
+  }, [mediaKey, mediaType]);
 
   return (
     <div
@@ -82,14 +90,28 @@ const BlogPost = ({
           {userName}
         </p>
         <div className={classes.blogPostLabel}>{description}</div>
-        {src && (
+        {mediaType === "video" && mediaSrc ? (
+          <video
+            src={mediaSrc}
+            controls
+            preload="metadata"
+            playsInline
+            className={classes.blogPostImage}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: `${width}px`,
+              maxHeight: "600px",
+              objectFit: "contain",
+            }}
+          />
+        ) : mediaType === "image" && mediaSrc ? (
           <LightboxImage
             className={`${classes.blogPostImage}`}
-            src={src}
+            src={mediaSrc}
             width={width}
             alt="post"
           />
-        )}
+        ) : null}
         <IconBar
           id={id}
           isLiked={isLiked ?? false}
