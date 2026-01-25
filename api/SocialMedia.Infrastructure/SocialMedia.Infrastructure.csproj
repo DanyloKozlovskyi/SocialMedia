@@ -12,7 +12,7 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="4.0.5.1" />
+    <PackageReference Include="AWSSDK.S3" Version="4.0.17.3" />
     <PackageReference Include="Bogus" Version="35.6.3" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.16" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.3.0" />

@@ -2,8 +2,9 @@ import { User } from "@entities/user";
 
 interface BlogCreateModel {
   description: string;
-  imageKey: string | null;
-  imageContentType: string | null;
+  mediaKey?: string | null;
+  mediaContentType?: string | null;
+  mediaType?: "image" | "video" | null;
   parentId: string | null;
 }
 

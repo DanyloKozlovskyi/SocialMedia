@@ -12,8 +12,9 @@ public static class BlogPostExtension
 		{
 			Id = post.Id,
 			Description = post.Description,
-			ImageKey = post.ImageKey,
-			ImageContentType = post.ImageContentType,
+			MediaKey = post.MediaKey,
+			MediaContentType = post.MediaContentType,
+			MediaType = post.MediaType,
 			PostedAt = post.PostedAt,
 			UserId = post.UserId,
 			User = new UserResponseModel() { UserName = post.User?.Name, Description = post.User?.Description, LogoContentType = post.User?.LogoContentType, LogoKey = post.User?.LogoKey, Id = post.UserId },
@@ -31,8 +32,9 @@ public static class BlogPostExtension
 		{
 			Id = post.Id,
 			Description = post.Description,
-			ImageKey = post.ImageKey,
-			ImageContentType = post.ImageContentType,
+			MediaKey = post.MediaKey,
+			MediaContentType = post.MediaContentType,
+			MediaType = post.MediaType,
 			PostedAt = post.PostedAt,
 			UserId = post.UserId,
 			User = post.User != null ? new UserResponseModel

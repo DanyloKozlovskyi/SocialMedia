@@ -11,6 +11,7 @@ using SocialMedia.Application;
 using SocialMedia.Application.BlogPosts;
 using SocialMedia.Application.Identity;
 using SocialMedia.Application.Images;
+using SocialMedia.Application.Videos;
 using SocialMedia.Application.Options;
 using SocialMedia.Application.Utilities;
 using SocialMedia.Domain.Entities.Identity;
@@ -41,7 +42,7 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
 	{
 		ServiceURL = $"https://{accountId}.r2.cloudflarestorage.com",
 		ForcePathStyle = true,
-		AuthenticationRegion = "auto"   // R2 doesn’t use AWS regions
+		AuthenticationRegion = "auto"   // R2 doesnï¿½t use AWS regions
 	};
 
 	var creds = new BasicAWSCredentials(accessKey, secretKey);
@@ -121,6 +122,7 @@ builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IImageRepository, R2ImageRepository>();
 builder.Services.AddScoped<IUploadUrlFactory, UploadUrlFactory>();
 builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IStorageService, StorageService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
