@@ -1,0 +1,28 @@
+.postButton {
+  padding: 10px 32px;
+  background-color: #f0f2f5 !important;
+  color: #111827 !important;
+  border: none;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  &:hover {
+    background-color: #e2e8f0;
+  }
+  &:active {
+    background-color: #cbd5e1;
+  }
+  &:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+  height: 60px;
+  max-width: 200px;
+  width: 100%;
+
+  position: fixed !important;
+  left: 100px;
+  bottom: 100px;
+}

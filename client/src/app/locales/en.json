@@ -1,0 +1,22 @@
+{
+  "iconbar.like": "Like",
+  "iconbar.comment": "Comment",
+  "iconbar.share": "Share",
+  "menu.my-account": "My Account",
+  "menu.logout": "Logout",
+  "menu.login": "Login",
+  "languages.en": "English",
+  "languages.uk": "Ukrainian",
+  "post-button.label": "Post",
+  "search-input.placeholder": "Search",
+  "edit-profile.button-label": "Edit Profile",
+  "upload-logo.cancel": "Cancel",
+  "upload-logo.choose-file": "Choose File",
+  "edit-profile-modal.edit": "Edit",
+  "edit-profile-modal.change-username": "Change username",
+  "edit-profile-modal.change-description": "Change description",
+  "add-post-modal.description": "Description",
+  "add-post-modal.enter": "Post",
+  "upload-file.no-image": "No image selected",
+   "edit-profile-modal.save": "Save"
+}

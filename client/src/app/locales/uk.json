@@ -1,0 +1,22 @@
+{
+  "iconbar.like": "Вподобання",
+  "iconbar.comment": "Коментар",
+  "iconbar.share": "Поширити",
+  "menu.logout": "Вийти",
+  "menu.login": "Увійти",
+  "menu.my-account": "Мій Акаунт",
+  "languages.en": "Англійська",
+  "languages.uk": "Українська",
+  "post-button.label": "Запостити",
+  "search-input.placeholder": "Шукати",
+  "edit-profile.button-label": "Редагувати",
+  "upload-logo.cancel": "Скасувати",
+  "upload-logo.choose-file": "Обрати файл",
+  "edit-profile-modal.edit": "Редагувати",
+  "edit-profile-modal.change-username": "Змінити ім'я користувача",
+  "edit-profile-modal.change-description": "Змінити опис",
+  "add-post-modal.description": "Опис",
+  "add-post-modal.enter": "Опублікувати",
+  "upload-file.no-image": "Фото не обрано",
+  "edit-profile-modal.save": "Зберегти"
+}
