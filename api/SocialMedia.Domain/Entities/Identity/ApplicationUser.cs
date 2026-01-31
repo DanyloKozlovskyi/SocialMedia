@@ -11,7 +11,7 @@ public class ApplicationUser : IdentityUser<Guid>
 	public string? Description { get; set; }
 
 	public virtual ICollection<Message>? SentMessages { get; set; }
-	public virtual ICollection<Message>? ReceivedMessages { get; set; }
+	public virtual ICollection<ConversationParticipant>? ConversationParticipants { get; set; }
 
 	public string? LogoKey { get; set; }
 	public string? LogoContentType { get; set; }

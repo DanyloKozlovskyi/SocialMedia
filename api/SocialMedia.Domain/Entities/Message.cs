@@ -17,7 +17,7 @@ namespace SocialMedia.Domain.Entities
         public Guid SenderId { get; set; }
         public virtual ApplicationUser Sender { get; set; } = null!;
 
-        public Guid ReceiverId { get; set; }
-        public virtual ApplicationUser Receiver { get; set; } = null!;
+        public Guid ConversationId { get; set; }
+        public virtual Conversation Conversation { get; set; } = null!;
     }
 }

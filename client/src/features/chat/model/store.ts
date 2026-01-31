@@ -7,15 +7,16 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 interface ChatStore extends ChatState {
   initializeConnection: (token: string) => Promise<void>;
   disconnectConnection: () => Promise<void>;
-  selectConversation: (userId: string, token: string) => Promise<void>;
+  selectConversation: (conversationId: string) => Promise<void>;
+  startConversation: (otherUserId: string) => Promise<string | null>;
   sendMessage: (
-    receiverId: string,
+    conversationId: string,
     content?: string,
     mediaKey?: string,
     mediaContentType?: string,
     mediaType?: string,
   ) => Promise<void>;
-  loadConversations: (token: string) => Promise<void>;
+  loadConversations: () => Promise<void>;
   receiveMessage: (message: Message) => void;
 }
 
@@ -46,12 +47,6 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       get().receiveMessage(message);
     });
 
-    newConnection.on("MessageSent", (message: Message) => {
-      set((state) => ({
-        messages: [...state.messages, message],
-      }));
-    });
-
     try {
       await newConnection.start();
       set({ connection: newConnection, isConnected: true });
@@ -68,10 +63,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  selectConversation: async (userId: string, token: string) => {
-    set({ isLoading: true, activeConversationId: userId });
+  selectConversation: async (conversationId: string) => {
+    set({ isLoading: true, activeConversationId: conversationId });
     try {
-      const messages = await chatApi.getConversation(userId, token);
+      const messages = await chatApi.getMessages(conversationId);
       set({ messages, isLoading: false });
     } catch (error) {
       console.error("Error loading conversation:", error);
@@ -79,8 +74,19 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
+  startConversation: async (otherUserId: string) => {
+    try {
+      const result = await chatApi.startConversation(otherUserId);
+      await get().loadConversations();
+      return result.conversationId;
+    } catch (error) {
+      console.error("Error starting conversation:", error);
+      return null;
+    }
+  },
+
   sendMessage: async (
-    receiverId: string,
+    conversationId: string,
     content?: string,
     mediaKey?: string,
     mediaContentType?: string,
@@ -95,7 +101,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     try {
       await connection.invoke(
         "SendMessage",
-        receiverId,
+        conversationId,
         content,
         mediaKey,
         mediaContentType,
@@ -106,10 +112,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  loadConversations: async (token: string) => {
+  loadConversations: async () => {
     set({ isLoading: true });
     try {
-      const conversations = await chatApi.getConversations(token);
+      const conversations = await chatApi.getConversations();
       set({ conversations, isLoading: false });
     } catch (error) {
       console.error("Error loading conversations:", error);
@@ -120,16 +126,13 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   receiveMessage: (message: Message) => {
     const { activeConversationId, messages } = get();
 
-    if (
-      message.senderId === activeConversationId ||
-      message.receiverId === activeConversationId
-    ) {
+    if (message.conversationId === activeConversationId) {
       set({ messages: [...messages, message] });
     }
 
     set((state) => {
       const updatedConversations = state.conversations.map((conv) => {
-        if (conv.userId === message.senderId) {
+        if (conv.conversationId === message.conversationId) {
           return {
             ...conv,
             lastMessage: message,

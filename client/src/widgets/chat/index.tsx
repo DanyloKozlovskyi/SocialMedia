@@ -37,7 +37,7 @@ export const GlobalChatWidget: React.FC<GlobalChatWidgetProps> = ({
   useEffect(() => {
     if (token && !connection) {
       initializeConnection(token);
-      loadConversations(token);
+      loadConversations();
     }
 
     return () => {
@@ -61,8 +61,8 @@ export const GlobalChatWidget: React.FC<GlobalChatWidgetProps> = ({
     }
   };
 
-  const handleSelectConversation = (userId: string) => {
-    selectConversation(userId, token);
+  const handleSelectConversation = (conversationId: string) => {
+    selectConversation(conversationId);
     setWidgetState("chat");
   };
 
@@ -92,8 +92,9 @@ export const GlobalChatWidget: React.FC<GlobalChatWidgetProps> = ({
     0,
   );
   const activeConversation = conversations.find(
-    (c) => c.userId === activeConversationId,
+    (c) => c.conversationId === activeConversationId,
   );
+  const otherParticipant = activeConversation?.participants[0];
 
   if (widgetState === "collapsed") {
     return (
@@ -138,11 +139,11 @@ export const GlobalChatWidget: React.FC<GlobalChatWidgetProps> = ({
         messages={messages}
         currentUserId={currentUserId}
         otherUser={
-          activeConversation
+          otherParticipant
             ? {
-                id: activeConversation.userId,
-                name: activeConversation.userName,
-                logoKey: activeConversation.userLogoKey,
+                id: otherParticipant.userId,
+                name: otherParticipant.name,
+                logoKey: otherParticipant.logoKey,
               }
             : undefined
         }

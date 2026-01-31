@@ -22,9 +22,9 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
 			   .HasForeignKey(x => x.SenderId)
 			   .OnDelete(DeleteBehavior.Restrict);
 
-		builder.HasOne(x => x.Receiver)
-			   .WithMany(u => u.ReceivedMessages)
-			   .HasForeignKey(x => x.ReceiverId)
-			   .OnDelete(DeleteBehavior.Restrict);
+		builder.HasOne(x => x.Conversation)
+			   .WithMany(c => c.Messages)
+			   .HasForeignKey(x => x.ConversationId)
+			   .OnDelete(DeleteBehavior.Cascade);
 	}
 }

@@ -1,7 +1,9 @@
+import { HubConnection } from "@microsoft/signalr";
+
 export interface Message {
   id: string;
   senderId: string;
-  receiverId: string;
+  conversationId: string;
   content?: string;
   mediaKey?: string;
   mediaContentType?: string;
@@ -13,22 +15,21 @@ export interface Message {
     name?: string;
     logoKey?: string;
   };
-  receiver?: {
-    id: string;
-    name?: string;
-    logoKey?: string;
-  };
+}
+
+export interface ConversationParticipant {
+  userId: string;
+  name?: string;
+  logoKey?: string;
+  logoContentType?: string;
 }
 
 export interface Conversation {
-  userId: string;
-  userName?: string;
-  userLogoKey?: string;
+  conversationId: string;
   lastMessage?: Message;
+  participants: ConversationParticipant[];
   unreadCount: number;
 }
-
-import { HubConnection } from "@microsoft/signalr";
 
 export interface ChatState {
   connection: HubConnection | null;

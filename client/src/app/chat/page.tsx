@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { getCookie } from '@shared/api';
-import { getUserId } from '@entities/user/helpers';
-import { useChatStore } from '@features/chat/model/store';
-import { ConversationList } from '@features/chat/ui/ConversationList';
-import { ChatWindow } from '@features/chat/ui/ChatWindow';
-import classes from './chat.module.scss';
+import React, { useEffect, useState } from "react";
+import { getCookie } from "@shared/api";
+import { getUserId } from "@entities/user/helpers";
+import { useChatStore } from "@features/chat/model/store";
+import { ConversationList } from "@features/chat/ui/ConversationList";
+import { ChatWindow } from "@features/chat/ui/ChatWindow";
+import classes from "./chat.module.scss";
 
 export default function ChatPage() {
-  const [token, setToken] = useState<string>('');
-  const [userId, setUserId] = useState<string>('');
+  const [token, setToken] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
 
   const {
     connection,
@@ -27,9 +27,9 @@ export default function ChatPage() {
 
   useEffect(() => {
     const loadAuthData = async () => {
-      const accessToken = getCookie('access_token');
+      const accessToken = getCookie("access_token");
       if (accessToken) {
-        const tokenValue = accessToken.split(' ')[1];
+        const tokenValue = accessToken.split(" ")[1];
         setToken(tokenValue);
 
         const id = await getUserId();
@@ -43,7 +43,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (token && !connection) {
       initializeConnection(token);
-      loadConversations(token);
+      loadConversations();
     }
 
     return () => {
@@ -51,24 +51,39 @@ export default function ChatPage() {
         disconnectConnection();
       }
     };
-  }, [token, connection, initializeConnection, loadConversations, disconnectConnection]);
+  }, [
+    token,
+    connection,
+    initializeConnection,
+    loadConversations,
+    disconnectConnection,
+  ]);
 
-  const handleSelectConversation = (conversationUserId: string) => {
-    selectConversation(conversationUserId, token);
+  const handleSelectConversation = (conversationId: string) => {
+    selectConversation(conversationId);
   };
 
   const handleSendMessage = (
     content?: string,
     mediaKey?: string,
     mediaContentType?: string,
-    mediaType?: string
+    mediaType?: string,
   ) => {
     if (activeConversationId) {
-      sendMessage(activeConversationId, content, mediaKey, mediaContentType, mediaType);
+      sendMessage(
+        activeConversationId,
+        content,
+        mediaKey,
+        mediaContentType,
+        mediaType,
+      );
     }
   };
 
-  const activeConversation = conversations.find((c) => c.userId === activeConversationId);
+  const activeConversation = conversations.find(
+    (c) => c.conversationId === activeConversationId,
+  );
+  const otherParticipant = activeConversation?.participants[0];
 
   return (
     <div className={classes.chatPage}>
@@ -86,11 +101,11 @@ export default function ChatPage() {
             messages={messages}
             currentUserId={userId}
             otherUser={
-              activeConversation
+              otherParticipant
                 ? {
-                    id: activeConversation.userId,
-                    name: activeConversation.userName,
-                    logoKey: activeConversation.userLogoKey,
+                    id: otherParticipant.userId,
+                    name: otherParticipant.name,
+                    logoKey: otherParticipant.logoKey,
                   }
                 : undefined
             }

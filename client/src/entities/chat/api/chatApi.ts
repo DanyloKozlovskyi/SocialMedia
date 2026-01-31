@@ -1,24 +1,24 @@
-import axios from 'axios';
-import { Message, Conversation } from '../model/types';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+import api from "@shared/api/interceptor-api";
+import { Message, Conversation } from "../model/types";
 
 export const chatApi = {
-  async getConversations(token: string): Promise<Conversation[]> {
-    const response = await axios.get(`${API_URL}/api/messages/conversations`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  async getConversations(): Promise<Conversation[]> {
+    const response = await api.get("/messages/conversations");
     return response.data;
   },
 
-  async getConversation(otherUserId: string, token: string): Promise<Message[]> {
-    const response = await axios.get(`${API_URL}/api/messages/conversation/${otherUserId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  async getMessages(conversationId: string): Promise<Message[]> {
+    const response = await api.get(`/messages/conversation/${conversationId}`);
+    return response.data;
+  },
+
+  async startConversation(
+    otherUserId: string,
+  ): Promise<{ conversationId: string }> {
+    const response = await api.post(
+      "/messages/conversation/start",
+      otherUserId,
+    );
     return response.data;
   },
 };
