@@ -1,6 +1,9 @@
-import React from 'react';
-import { Message } from '../../model/types';
-import classes from './MessageBubble.module.scss';
+import React, { useState, useEffect } from "react";
+import { UserLogo } from "@core-components/user-logo";
+import { fetchImageAsBlobURL } from "@entities/image";
+import { getSignedVideoUrl } from "@entities/video";
+import { Message } from "../../model/types";
+import classes from "./MessageBubble.module.scss";
 
 interface MessageBubbleProps {
   message: Message;
@@ -8,47 +11,82 @@ interface MessageBubbleProps {
   currentUserId: string;
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({
+  message,
+  isOwn,
+}) => {
+  const [mediaSrc, setMediaSrc] = useState<string | null>(null);
+
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
-  const getMediaUrl = (mediaKey: string) => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-    return `${apiUrl}/api/images/${mediaKey}`;
-  };
+  useEffect(() => {
+    if (!message.mediaKey || !message.mediaType) {
+      setMediaSrc(null);
+      return;
+    }
+
+    if (message.mediaType === "video") {
+      getSignedVideoUrl(message.mediaKey)
+        .then((url: string) => {
+          setMediaSrc(url);
+        })
+        .catch((err) => {
+          console.error("Failed to load video URL:", err);
+          setMediaSrc(null);
+        });
+    } else if (message.mediaType === "image") {
+      fetchImageAsBlobURL(message.mediaKey)
+        .then((url: string) => {
+          setMediaSrc(url);
+        })
+        .catch((err) => {
+          console.error("Failed to load image:", err);
+          setMediaSrc(null);
+        });
+    }
+
+    return () => {
+      if (mediaSrc && message.mediaType === "image") {
+        URL.revokeObjectURL(mediaSrc);
+      }
+    };
+  }, [message.mediaKey, message.mediaType]);
 
   return (
-    <div className={`${classes.messageContainer} ${isOwn ? classes.outgoing : classes.incoming}`}>
+    <div
+      className={`${classes.messageContainer} ${isOwn ? classes.outgoing : classes.incoming}`}
+    >
       {!isOwn && message.sender?.logoKey && (
-        <img
-          src={getMediaUrl(message.sender.logoKey)}
-          alt={message.sender.name || 'User'}
+        <UserLogo
           className={classes.avatar}
+          logoKey={message.sender.logoKey}
+          size={32}
         />
       )}
-      
-      <div className={`${classes.bubble} ${isOwn ? classes.outgoing : classes.incoming}`}>
+
+      <div
+        className={`${classes.bubble} ${isOwn ? classes.outgoing : classes.incoming}`}
+      >
         {message.content && (
           <div className={classes.content}>{message.content}</div>
         )}
-        
-        {message.mediaKey && message.mediaType === 'image' && (
+
+        {message.mediaKey && message.mediaType === "image" && mediaSrc && (
           <div className={classes.media}>
-            <img src={getMediaUrl(message.mediaKey)} alt="Shared image" />
+            <img src={mediaSrc} alt="Shared image" />
           </div>
         )}
-        
-        {message.mediaKey && message.mediaType === 'video' && (
+
+        {message.mediaKey && message.mediaType === "video" && mediaSrc && (
           <div className={classes.media}>
-            <video controls src={getMediaUrl(message.mediaKey)} />
+            <video controls src={mediaSrc} />
           </div>
         )}
-        
-        <div className={classes.timestamp}>
-          {formatTime(message.createdAt)}
-        </div>
+
+        <div className={classes.timestamp}>{formatTime(message.createdAt)}</div>
       </div>
     </div>
   );

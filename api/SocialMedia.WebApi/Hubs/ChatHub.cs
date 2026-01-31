@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using SocialMedia.Domain.Entities;
-using SocialMedia.Infrastructure.Persistence.Sql;
+using SocialMedia.Application.Chat;
 using System.Security.Claims;
 
 namespace SocialMedia.WebApi.Hubs;
@@ -10,11 +8,13 @@ namespace SocialMedia.WebApi.Hubs;
 [Authorize]
 public class ChatHub : Hub
 {
-	private readonly SocialMediaDbContext _context;
+	private readonly IChatService _chatService;
+	private readonly IConversationRepository _conversationRepository;
 
-	public ChatHub(SocialMediaDbContext context)
+	public ChatHub(IChatService chatService, IConversationRepository conversationRepository)
 	{
-		_context = context;
+		_chatService = chatService;
+		_conversationRepository = conversationRepository;
 	}
 
 	public override async Task OnConnectedAsync()
@@ -22,10 +22,8 @@ public class ChatHub : Hub
 		var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 		if (userIdClaim != null && Guid.TryParse(userIdClaim, out var userId))
 		{
-			var conversationIds = await _context.ConversationParticipants
-				.Where(cp => cp.UserId == userId)
-				.Select(cp => cp.ConversationId.ToString())
-				.ToListAsync();
+			var conversations = await _conversationRepository.GetConversationsByUserId(userId);
+			var conversationIds = conversations.Select(c => c.Id.ToString());
 
 			foreach (var conversationId in conversationIds)
 			{
@@ -44,8 +42,7 @@ public class ChatHub : Hub
 			throw new HubException("Unauthorized");
 		}
 
-		var isParticipant = await _context.ConversationParticipants
-			.AnyAsync(cp => cp.ConversationId == conversationId && cp.UserId == userId);
+		var isParticipant = await _conversationRepository.IsParticipant(conversationId, userId);
 
 		if (!isParticipant)
 		{
@@ -63,49 +60,19 @@ public class ChatHub : Hub
 			throw new HubException("Unauthorized");
 		}
 
-		var isParticipant = await _context.ConversationParticipants
-			.AnyAsync(cp => cp.ConversationId == conversationId && cp.UserId == senderId);
-
-		if (!isParticipant)
+		try
+		{
+			var message = await _chatService.SendMessage(senderId, conversationId, content, mediaKey, mediaContentType, mediaType);
+			await Clients.Group(conversationId.ToString()).SendAsync("ReceiveMessage", message);
+		}
+		catch (UnauthorizedAccessException)
 		{
 			throw new HubException("Not a participant of this conversation");
 		}
-
-		var message = new Message
-		{
-			Id = Guid.NewGuid(),
-			SenderId = senderId,
-			ConversationId = conversationId,
-			Content = content,
-			MediaKey = mediaKey,
-			MediaContentType = mediaContentType,
-			MediaType = mediaType,
-			CreatedAt = DateTime.UtcNow,
-			IsRead = false
-		};
-
-		_context.Messages.Add(message);
-		await _context.SaveChangesAsync();
-
-		var conversation = await _context.Conversations
-			.FirstOrDefaultAsync(c => c.Id == conversationId);
-
-		if (conversation != null)
-		{
-			conversation.UpdatedAt = DateTime.UtcNow;
-			await _context.SaveChangesAsync();
-		}
-
-		await Clients.Group(conversationId.ToString()).SendAsync("ReceiveMessage", message);
 	}
 
 	public async Task MarkAsRead(Guid messageId)
 	{
-		var message = await _context.Messages.FindAsync(messageId);
-		if (message != null)
-		{
-			message.IsRead = true;
-			await _context.SaveChangesAsync();
-		}
+		await _chatService.MarkAsRead(messageId);
 	}
 }

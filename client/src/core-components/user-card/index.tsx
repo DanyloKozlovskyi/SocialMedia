@@ -1,8 +1,10 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
+import ChatIcon from "@mui/icons-material/Chat";
 import { User } from "@entities/user";
 import { UserLogo } from "@core-components/user-logo";
+import { useChatStore } from "@features/chat/model/store";
 import classes from "./user-card.module.scss";
 
 type Props = {
@@ -11,19 +13,25 @@ type Props = {
 
 export default function UserCard({ user }: Props) {
   const router = useRouter();
+  const { startConversation, selectConversation } = useChatStore();
 
   const goToUserPosts = (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
     router.push(`user-posts?id=${userId}`);
   };
 
+  const handleMessage = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const conversationId = await startConversation(user.id);
+    if (conversationId) {
+      selectConversation(conversationId);
+      router.push("/chat");
+    }
+  };
+
   return (
     <div className={classes.card} onClick={(e) => goToUserPosts(e, user?.id)}>
-      <UserLogo
-        logoKey={user?.logoKey}
-        className={classes.avatar}
-        size={48}
-      />
+      <UserLogo logoKey={user?.logoKey} className={classes.avatar} size={48} />
 
       <div className={classes.info}>
         <div className={classes.nameRow}>
@@ -36,7 +44,18 @@ export default function UserCard({ user }: Props) {
         <div className={classes.description}>{user.description}</div>
       </div>
 
-      <button className={classes.followBtn}>Follow</button>
+      <div className={classes.actions}>
+        <button
+          className={classes.messageBtn}
+          onClick={handleMessage}
+          type="button"
+        >
+          <ChatIcon />
+        </button>
+        <button className={classes.followBtn} type="button">
+          Follow
+        </button>
+      </div>
     </div>
   );
 }

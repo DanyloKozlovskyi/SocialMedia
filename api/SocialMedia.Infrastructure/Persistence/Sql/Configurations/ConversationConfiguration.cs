@@ -10,6 +10,7 @@ public class ConversationConfiguration : IEntityTypeConfiguration<Conversation>
 	{
 		builder.HasKey(x => x.Id);
 
+		builder.Property(x => x.Name).IsRequired(false).HasMaxLength(100);
 		builder.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 		builder.Property(x => x.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
 

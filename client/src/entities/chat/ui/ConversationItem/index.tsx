@@ -1,4 +1,5 @@
 import React from "react";
+import { UserLogo } from "@core-components/user-logo";
 import { Conversation } from "../../model/types";
 import classes from "./ConversationItem.module.scss";
 
@@ -28,30 +29,35 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
     return date.toLocaleDateString([], { month: "short", day: "numeric" });
   };
 
-  const getMediaUrl = (mediaKey?: string) => {
-    if (!mediaKey) return "/default-avatar.png";
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-    return `${apiUrl}/api/images/${mediaKey}`;
-  };
-
+  const isGroupChat = conversation.participants.length > 1;
   const otherParticipant = conversation.participants[0];
+
+  const displayName = isGroupChat
+    ? conversation.name || `Group (${conversation.participants.length + 1})`
+    : otherParticipant?.name || "Unknown User";
 
   return (
     <div
       className={`${classes.conversationItem} ${isActive ? classes.active : ""}`}
       onClick={onClick}
     >
-      <img
-        src={getMediaUrl(otherParticipant?.logoKey)}
-        alt={otherParticipant?.name || "User"}
-        className={classes.avatar}
-      />
+      {isGroupChat ? (
+        <img
+          src="/default-group-avatar.png"
+          alt={displayName}
+          className={classes.avatar}
+        />
+      ) : (
+        <UserLogo
+          className={classes.avatar}
+          logoKey={otherParticipant?.logoKey || null}
+          size={40}
+        />
+      )}
 
       <div className={classes.content}>
         <div className={classes.header}>
-          <span className={classes.userName}>
-            {otherParticipant?.name || "Unknown User"}
-          </span>
+          <span className={classes.userName}>{displayName}</span>
           <span className={classes.time}>
             {formatTime(conversation.lastMessage?.createdAt)}
           </span>

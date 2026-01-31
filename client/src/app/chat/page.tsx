@@ -1,63 +1,34 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getCookie } from "@shared/api";
 import { getUserId } from "@entities/user/helpers";
 import { useChatStore } from "@features/chat/model/store";
 import { ConversationList } from "@features/chat/ui/ConversationList";
 import { ChatWindow } from "@features/chat/ui/ChatWindow";
+import { UserSearch } from "@features/chat/ui/UserSearch";
+import { GroupChatCreation } from "@features/chat/ui/GroupChatCreation";
 import classes from "./chat.module.scss";
 
 export default function ChatPage() {
-  const [token, setToken] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
 
   const {
-    connection,
     conversations,
     activeConversationId,
     messages,
     isLoading,
-    initializeConnection,
-    disconnectConnection,
     selectConversation,
     sendMessage,
-    loadConversations,
   } = useChatStore();
 
   useEffect(() => {
     const loadAuthData = async () => {
-      const accessToken = getCookie("access_token");
-      if (accessToken) {
-        const tokenValue = accessToken.split(" ")[1];
-        setToken(tokenValue);
-
-        const id = await getUserId();
-        setUserId(id);
-      }
+      const id = await getUserId();
+      setUserId(id);
     };
 
     loadAuthData();
   }, []);
-
-  useEffect(() => {
-    if (token && !connection) {
-      initializeConnection(token);
-      loadConversations();
-    }
-
-    return () => {
-      if (connection) {
-        disconnectConnection();
-      }
-    };
-  }, [
-    token,
-    connection,
-    initializeConnection,
-    loadConversations,
-    disconnectConnection,
-  ]);
 
   const handleSelectConversation = (conversationId: string) => {
     selectConversation(conversationId);
@@ -83,11 +54,21 @@ export default function ChatPage() {
   const activeConversation = conversations.find(
     (c) => c.conversationId === activeConversationId,
   );
+
+  const isGroupChat =
+    activeConversation && activeConversation.participants.length > 1;
   const otherParticipant = activeConversation?.participants[0];
+
+  const chatTitle = isGroupChat
+    ? activeConversation.name ||
+      `Group (${activeConversation.participants.length + 1})`
+    : otherParticipant?.name || "Unknown User";
 
   return (
     <div className={classes.chatPage}>
       <div className={classes.sidebar}>
+        <UserSearch />
+        <GroupChatCreation />
         <ConversationList
           conversations={conversations}
           activeConversationId={activeConversationId}
@@ -101,13 +82,19 @@ export default function ChatPage() {
             messages={messages}
             currentUserId={userId}
             otherUser={
-              otherParticipant
+              !isGroupChat && otherParticipant
                 ? {
                     id: otherParticipant.userId,
                     name: otherParticipant.name,
                     logoKey: otherParticipant.logoKey,
                   }
-                : undefined
+                : isGroupChat
+                  ? {
+                      id: "",
+                      name: chatTitle,
+                      logoKey: undefined,
+                    }
+                  : undefined
             }
             isLoading={isLoading}
             onSendMessage={handleSendMessage}

@@ -2,13 +2,17 @@ import { create } from "zustand";
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { ChatState, Message, chatApi } from "@entities/chat";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface ChatStore extends ChatState {
   initializeConnection: (token: string) => Promise<void>;
   disconnectConnection: () => Promise<void>;
   selectConversation: (conversationId: string) => Promise<void>;
   startConversation: (otherUserId: string) => Promise<string | null>;
+  createGroupConversation: (
+    name: string,
+    participantIds: string[],
+  ) => Promise<string | null>;
   sendMessage: (
     conversationId: string,
     content?: string,
@@ -81,6 +85,20 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       return result.conversationId;
     } catch (error) {
       console.error("Error starting conversation:", error);
+      return null;
+    }
+  },
+
+  createGroupConversation: async (name: string, participantIds: string[]) => {
+    try {
+      const result = await chatApi.createGroupConversation(
+        name,
+        participantIds,
+      );
+      await get().loadConversations();
+      return result.conversationId;
+    } catch (error) {
+      console.error("Error creating group conversation:", error);
       return null;
     }
   },

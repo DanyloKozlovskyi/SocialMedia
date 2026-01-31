@@ -21,4 +21,15 @@ export const chatApi = {
     );
     return response.data;
   },
+
+  async createGroupConversation(
+    name: string,
+    participantIds: string[],
+  ): Promise<{ conversationId: string }> {
+    const response = await api.post("/messages/conversation/group", {
+      name,
+      participantIds,
+    });
+    return response.data;
+  },
 };

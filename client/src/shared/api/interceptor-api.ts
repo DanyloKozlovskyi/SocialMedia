@@ -2,7 +2,7 @@ import axios from "axios";
 import { setCookie, getCookie } from "./helpers";
 
 const api = axios.create({
-  baseURL: "https://localhost:7265/api",
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -16,7 +16,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 function readTokens() {
@@ -48,7 +48,7 @@ api.interceptors.response.use(
             token: tokens.access,
             refreshToken: tokens.refresh,
           },
-          { baseURL: api.defaults.baseURL }
+          { baseURL: api.defaults.baseURL },
         );
 
         setCookie("access_token", `Bearer ${data.token}`);
@@ -57,21 +57,25 @@ api.interceptors.response.use(
         original.headers.Authorization = `Bearer ${data.token}`;
         return api(original);
       } catch (refreshErr) {
-        if (refreshErr.response?.status === 401) {
+        const error = refreshErr as { response?: { status: number } };
+        if (error.response?.status === 401) {
           window.location.href = "/sign-in";
-        } else {
+        } else if (window.location.pathname !== "/something-went-wrong") {
           window.location.href = "/something-went-wrong";
         }
         return Promise.reject(refreshErr);
       }
     }
 
-    if (response?.status >= 500) {
+    if (
+      response?.status >= 500 &&
+      window.location.pathname !== "/something-went-wrong"
+    ) {
       window.location.href = "/something-went-wrong";
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

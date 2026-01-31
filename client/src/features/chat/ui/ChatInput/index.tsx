@@ -1,30 +1,39 @@
-import React, { useState, useRef, KeyboardEvent } from 'react';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
-import SendIcon from '@mui/icons-material/Send';
-import classes from './ChatInput.module.scss';
+import React, { useState, useRef, KeyboardEvent } from "react";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import SendIcon from "@mui/icons-material/Send";
+import { getUploadUrl, saveFileIntoBlob } from "@entities/image";
+import classes from "./ChatInput.module.scss";
 
 interface ChatInputProps {
-  onSendMessage: (content?: string, mediaKey?: string, mediaContentType?: string, mediaType?: string) => void;
+  onSendMessage: (
+    content?: string,
+    mediaKey?: string,
+    mediaContentType?: string,
+    mediaType?: string,
+  ) => void;
   disabled?: boolean;
 }
 
-export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
-  const [message, setMessage] = useState('');
+export const ChatInput: React.FC<ChatInputProps> = ({
+  onSendMessage,
+  disabled,
+}) => {
+  const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = () => {
     if (message.trim()) {
       onSendMessage(message.trim());
-      setMessage('');
+      setMessage("");
       if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = "auto";
       }
     }
   };
 
   const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -33,7 +42,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled })
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   };
@@ -42,28 +51,23 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled })
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${apiUrl}/api/images/upload`, {
-        method: 'POST',
-        body: formData,
-      });
+      const { key, uploadUrl } = await getUploadUrl(file.name);
+      await saveFileIntoBlob(file, uploadUrl, file.type);
 
-      if (response.ok) {
-        const data = await response.json();
-        const mediaType = file.type.startsWith('image/') ? 'image' : 
-                         file.type.startsWith('video/') ? 'video' : 'audio';
-        onSendMessage(undefined, data.key, file.type, mediaType);
-      }
+      const mediaType = file.type.startsWith("image/")
+        ? "image"
+        : file.type.startsWith("video/")
+          ? "video"
+          : "audio";
+
+      onSendMessage(undefined, key, file.type, mediaType);
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error("Error uploading file:", error);
     }
 
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -78,7 +82,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled })
         >
           <AttachFileIcon fontSize="small" />
         </button>
-        
+
         <textarea
           ref={textareaRef}
           className={classes.textarea}
@@ -89,7 +93,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled })
           disabled={disabled}
           rows={1}
         />
-        
+
         <input
           ref={fileInputRef}
           type="file"
@@ -98,7 +102,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled })
           onChange={handleFileSelect}
         />
       </div>
-      
+
       <button
         className={classes.sendButton}
         onClick={handleSend}

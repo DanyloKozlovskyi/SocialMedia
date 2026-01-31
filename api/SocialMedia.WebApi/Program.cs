@@ -29,6 +29,7 @@ using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Users;
 using SocialMedia.WebApi.Hubs;
 using StackExchange.Redis;
 using SocialMedia.WebApi;
+using SocialMedia.Application.Chat;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -96,6 +97,23 @@ builder.Services.AddAuthentication(options =>
 		ValidateIssuerSigningKey = true,
 		IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
 	};
+
+	options.Events = new JwtBearerEvents
+	{
+		OnMessageReceived = context =>
+		{
+			var accessToken = context.Request.Query["access_token"];
+
+			// If the request is for our hub read the token out of the query string
+			var path = context.HttpContext.Request.Path;
+			if (!string.IsNullOrEmpty(accessToken) &&
+				(path.StartsWithSegments("/api/hubs/chat")))
+			{
+				context.Token = accessToken;
+			}
+			return Task.CompletedTask;
+		}
+	};
 });
 
 builder.Services.AddScoped<BlogBackfillService>();
@@ -130,6 +148,9 @@ builder.Services.AddScoped<IImageRepository, R2ImageRepository>();
 builder.Services.AddScoped<IUploadUrlFactory, UploadUrlFactory>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IStorageService, StorageService>();
+builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<IChatService, ChatService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -189,7 +210,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<ChatHub>("/hubs/chat");
+app.MapHub<ChatHub>("/api/hubs/chat");
 
 if (app.Environment.IsDevelopment())
 {

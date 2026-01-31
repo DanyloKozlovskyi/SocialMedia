@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SocialMedia.Domain.Entities;
-using SocialMedia.Infrastructure.Persistence.Sql;
+using SocialMedia.Application.Chat;
+using SocialMedia.Application.Chat.Dtos;
 using System.Security.Claims;
 
 namespace SocialMedia.WebApi.Controllers;
@@ -12,11 +11,11 @@ namespace SocialMedia.WebApi.Controllers;
 [Route("api/[controller]")]
 public class MessagesController : ControllerBase
 {
-	private readonly SocialMediaDbContext _context;
+	private readonly IChatService _chatService;
 
-	public MessagesController(SocialMediaDbContext context)
+	public MessagesController(IChatService chatService)
 	{
-		_context = context;
+		_chatService = chatService;
 	}
 
 	[HttpGet("conversations")]
@@ -28,31 +27,7 @@ public class MessagesController : ControllerBase
 			return Unauthorized();
 		}
 
-		var conversations = await _context.ConversationParticipants
-			.Where(cp => cp.UserId == currentUserId)
-			.Include(cp => cp.Conversation)
-				.ThenInclude(c => c.Messages.OrderByDescending(m => m.CreatedAt).Take(1))
-			.Include(cp => cp.Conversation)
-				.ThenInclude(c => c.Participants)
-					.ThenInclude(p => p.User)
-			.Select(cp => new
-			{
-				ConversationId = cp.ConversationId,
-				LastMessage = cp.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault(),
-				Participants = cp.Conversation.Participants
-					.Where(p => p.UserId != currentUserId)
-					.Select(p => new
-					{
-						p.UserId,
-						p.User.Name,
-						p.User.LogoKey,
-						p.User.LogoContentType
-					})
-					.ToList(),
-				UnreadCount = cp.Conversation.Messages.Count(m => m.SenderId != currentUserId && !m.IsRead)
-			})
-			.ToListAsync();
-
+		var conversations = await _chatService.GetConversations(currentUserId);
 		return Ok(conversations);
 	}
 
@@ -65,21 +40,15 @@ public class MessagesController : ControllerBase
 			return Unauthorized();
 		}
 
-		var isParticipant = await _context.ConversationParticipants
-			.AnyAsync(cp => cp.ConversationId == conversationId && cp.UserId == currentUserId);
-
-		if (!isParticipant)
+		try
+		{
+			var messages = await _chatService.GetMessages(conversationId, currentUserId);
+			return Ok(messages);
+		}
+		catch (UnauthorizedAccessException)
 		{
 			return Forbid();
 		}
-
-		var messages = await _context.Messages
-			.Where(m => m.ConversationId == conversationId)
-			.OrderBy(m => m.CreatedAt)
-			.Include(m => m.Sender)
-			.ToListAsync();
-
-		return Ok(messages);
 	}
 
 	[HttpPost("conversation/start")]
@@ -91,43 +60,27 @@ public class MessagesController : ControllerBase
 			return Unauthorized();
 		}
 
-		var existingConversation = await _context.ConversationParticipants
-			.Where(cp => cp.UserId == currentUserId)
-			.Select(cp => cp.Conversation)
-			.Where(c => c.Participants.Count == 2 && 
-					   c.Participants.Any(p => p.UserId == otherUserId))
-			.FirstOrDefaultAsync();
+		var conversationId = await _chatService.StartConversation(currentUserId, otherUserId);
+		return Ok(new { ConversationId = conversationId });
+	}
 
-		if (existingConversation != null)
+	[HttpPost("conversation/group")]
+	public async Task<IActionResult> CreateGroupConversation([FromBody] CreateGroupRequest request)
+	{
+		var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		if (currentUserIdClaim == null || !Guid.TryParse(currentUserIdClaim, out var currentUserId))
 		{
-			return Ok(new { ConversationId = existingConversation.Id });
+			return Unauthorized();
 		}
 
-		var conversation = new Conversation
+		try
 		{
-			Id = Guid.NewGuid(),
-			CreatedAt = DateTime.UtcNow,
-			UpdatedAt = DateTime.UtcNow
-		};
-
-		_context.Conversations.Add(conversation);
-
-		_context.ConversationParticipants.Add(new ConversationParticipant
+			var conversationId = await _chatService.CreateGroupConversation(currentUserId, request.Name, request.ParticipantIds);
+			return Ok(new { ConversationId = conversationId });
+		}
+		catch (ArgumentException ex)
 		{
-			ConversationId = conversation.Id,
-			UserId = currentUserId,
-			JoinedAt = DateTime.UtcNow
-		});
-
-		_context.ConversationParticipants.Add(new ConversationParticipant
-		{
-			ConversationId = conversation.Id,
-			UserId = otherUserId,
-			JoinedAt = DateTime.UtcNow
-		});
-
-		await _context.SaveChangesAsync();
-
-		return Ok(new { ConversationId = conversation.Id });
+			return BadRequest(ex.Message);
+		}
 	}
 }
