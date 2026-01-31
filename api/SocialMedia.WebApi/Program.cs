@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SocialMedia.Application;
@@ -25,7 +26,9 @@ using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Comments;
 using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Likes;
 using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Roles;
 using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Users;
+using SocialMedia.WebApi.Hubs;
 using StackExchange.Redis;
+using SocialMedia.WebApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,12 +45,14 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
 	{
 		ServiceURL = $"https://{accountId}.r2.cloudflarestorage.com",
 		ForcePathStyle = true,
-		AuthenticationRegion = "auto"   // R2 doesn�t use AWS regions
+		AuthenticationRegion = "auto"   
 	};
 
 	var creds = new BasicAWSCredentials(accessKey, secretKey);
 	return new AmazonS3Client(creds, config);
 });
+
+builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -59,6 +64,7 @@ builder.Services.AddControllers(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 builder.Services.AddDbContext<SocialMediaDbContext>(options =>
 {
 	options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), opt => opt.CommandTimeout(60).UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)).EnableSensitiveDataLogging();
@@ -110,7 +116,8 @@ builder.Services.AddCors(options =>
 	{
 		policyBuilder.WithOrigins("http://localhost:3000", "http://localhost:8000")
 		.AllowAnyHeader()
-		.AllowAnyMethod();
+		.AllowAnyMethod()
+		.AllowCredentials();
 	});
 });
 
@@ -182,6 +189,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat");
 
 if (app.Environment.IsDevelopment())
 {

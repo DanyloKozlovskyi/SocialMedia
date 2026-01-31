@@ -10,6 +10,9 @@ public class ApplicationUser : IdentityUser<Guid>
 	public virtual ICollection<Like>? Likes { get; set; }
 	public string? Description { get; set; }
 
+	public virtual ICollection<Message>? SentMessages { get; set; }
+	public virtual ICollection<Message>? ReceivedMessages { get; set; }
+
 	public string? LogoKey { get; set; }
 	public string? LogoContentType { get; set; }
 }
