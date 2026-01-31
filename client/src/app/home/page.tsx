@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { fetchPosts } from "./helpers";
 import BlogPost from "@core-components/blog-post";
-import { CreatePostModal, CreatePostButton } from "@features/create-post";
 import NoResultsFound from "@shared/ui/no-results-found";
 import SeparatorLayout from "@app/layout/separator-layout";
 import Loader from "@shared/ui/loader";
@@ -13,24 +12,11 @@ import classes from "./home.module.scss";
 const Home = () => {
   const { posts, setPosts, scrollY, setScrollY, page, incrementPage } =
     useHomeStore();
-  const timeout = 1000;
-  const [isOpen, setIsOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const observer = useRef<IntersectionObserver | null>(null);
-  const width = 500;
-  const height = 650;
 
   const pageSize = 5;
-
-  const handleClose = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      setIsOpen(false);
-      setIsClosing(false);
-    }, timeout);
-  };
 
   const lastPostRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -45,12 +31,12 @@ const Home = () => {
 
       if (node) observer.current.observe(node);
     },
-    [isLoading, hasMore]
+    [isLoading, hasMore],
   );
 
   const loadMore = async () => {
     setIsLoading(true);
-    const newPosts = await fetchPosts(page, pageSize, width, height);
+    const newPosts = await fetchPosts(page, pageSize);
 
     if (newPosts?.length < pageSize) setHasMore(false);
     setPosts([...posts, ...newPosts]);
@@ -64,7 +50,7 @@ const Home = () => {
     const fetchInitial = async () => {
       try {
         setIsLoading(true);
-        const initialPosts = await fetchPosts(page, pageSize, width, height);
+        const initialPosts = await fetchPosts(page, pageSize);
         if (initialPosts?.length > 0) {
           setPosts(initialPosts);
           incrementPage();
@@ -91,7 +77,6 @@ const Home = () => {
 
   return (
     <SeparatorLayout>
-      <CreatePostButton onClick={() => setIsOpen(true)} />
       <div style={{ overflow: "auto", height: "100%" }}>
         {posts?.map((item, index) => {
           const isLast = index === posts.length - 1;
@@ -108,12 +93,6 @@ const Home = () => {
             </div>
           );
         })}
-        <CreatePostModal
-          isOpen={isOpen}
-          onClose={handleClose}
-          timeout={timeout}
-          isClosing={isClosing}
-        />
         {isLoading && posts.length === 0 && (
           <div className={classes.loaderWrapperTop}>
             <Loader isLoading />

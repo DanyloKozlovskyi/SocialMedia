@@ -3,10 +3,13 @@
 }
 
 .toolbar {
+  position: sticky;
+  top: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 16px 8px;
+  height: fit-content;
 }
 
 .navButton {
@@ -42,4 +45,10 @@
   svg {
     font-size: 24px;
   }
+}
+
+.postButtonWrapper {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
 }
