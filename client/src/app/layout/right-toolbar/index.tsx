@@ -1,11 +1,5 @@
-import { SearchComponent } from "@features/search";
-
 const RightToolbar = () => {
-  return (
-    <div>
-      <SearchComponent />
-    </div>
-  );
+  return <div></div>;
 };
 
 export default RightToolbar;

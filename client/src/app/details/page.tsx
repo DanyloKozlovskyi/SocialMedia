@@ -10,16 +10,12 @@ import { useSearchParams } from "next/navigation";
 import { getParents } from "@entities/blog-post";
 import BlogPost from "@core-components/blog-post";
 import { CreatePostModal, CreatePostButton } from "@features/create-post";
-import { ArrowBack } from "@shared/ui/arrow-back";
+import PageHeader from "@shared/ui/page-header";
 import SeparatorLayout from "@app/layout/separator-layout";
 import Loader from "@shared/ui/loader";
 import Separator from "@shared/ui/separator";
 import NoResultsFound from "@shared/ui/no-results-found";
-import {
-  fetchMainPost,
-  fetchSecondaryPosts,
-  fetchComments,
-} from "./helpers";
+import { fetchMainPost, fetchSecondaryPosts, fetchComments } from "./helpers";
 import { useDetailsStore } from "./useDetailsStore";
 import classes from "./details.module.scss";
 
@@ -27,8 +23,6 @@ const Details = () => {
   const searchParams = useSearchParams();
   const id = searchParams.get("id")!;
   const timeout = 1000;
-  const mainPostWidth = 500;
-  const mainPostHeight = 650;
 
   const {
     isLoadingPost,
@@ -47,22 +41,22 @@ const Details = () => {
   } = useDetailsStore();
 
   const post = useDetailsStore(
-    (state) => state.stack[state.currentIndex]?.post || null
+    (state) => state.stack[state.currentIndex]?.post || null,
   );
   const parents = useDetailsStore(
-    (state) => state.stack[state.currentIndex]?.parents || null
+    (state) => state.stack[state.currentIndex]?.parents || null,
   );
   const comments = useDetailsStore(
-    (state) => state.stack[state.currentIndex]?.comments || null
+    (state) => state.stack[state.currentIndex]?.comments || null,
   );
   const commentsPage = useDetailsStore(
-    (state) => state.stack[state.currentIndex]?.commentsPage || 1
+    (state) => state.stack[state.currentIndex]?.commentsPage || 1,
   );
   const commentsHasMore = useDetailsStore(
-    (state) => state.stack[state.currentIndex]?.commentsHasMore ?? true
+    (state) => state.stack[state.currentIndex]?.commentsHasMore ?? true,
   );
   const scrollY = useDetailsStore(
-    (state) => state.stack[state.currentIndex]?.scrollY ?? 0
+    (state) => state.stack[state.currentIndex]?.scrollY ?? 0,
   );
 
   const [isOpen, setIsOpen] = useState(false);
@@ -81,7 +75,7 @@ const Details = () => {
     const initialize = async () => {
       setIsLoadingPost(true);
       setIsLoadingComments(true);
-      const main = await fetchMainPost(id, mainPostWidth, mainPostHeight);
+      const main = await fetchMainPost(id);
       const allParents = await fetchSecondaryPosts(getParents, main.id);
       const comments = await fetchComments(id, 1, pageSize);
       // clear empty stackelement pushed inside of useLayoutEffect
@@ -124,7 +118,7 @@ const Details = () => {
       });
       if (node) commentObserver.current.observe(node);
     },
-    [isLoadingComments, commentsHasMore, loadMoreComments]
+    [isLoadingComments, commentsHasMore, loadMoreComments],
   );
 
   useEffect(() => () => updateScrollY(window.scrollY), [updateScrollY]);
@@ -139,27 +133,18 @@ const Details = () => {
 
   return (
     <SeparatorLayout>
+      <PageHeader title="Post" onBack={() => popView()} />
       <div style={{ overflow: "auto", height: "100%" }}>
-        <ArrowBack onBack={() => popView()} />
         {!isLoadingPost &&
           parents?.map((post) => {
-            return (
-              <BlogPost
-                key={post.id}
-                {...post}
-              />
-            );
+            return <BlogPost key={post.id} {...post} />;
           })}
 
         {/* main post */}
         {!isLoadingPost &&
           post &&
           (() => {
-            return (
-              <BlogPost
-                {...post}
-              />
-            );
+            return <BlogPost {...post} />;
           })()}
         <Separator horizontal top="100%" />
 
@@ -169,9 +154,7 @@ const Details = () => {
             const last = i === comments?.length - 1;
             return (
               <div key={comment.id} ref={last ? lastCommentRef : null}>
-                <BlogPost
-                  {...comment}
-                />
+                <BlogPost {...comment} />
               </div>
             );
           })}

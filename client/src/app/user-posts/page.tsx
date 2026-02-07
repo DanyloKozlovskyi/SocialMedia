@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import SeparatorLayout from "../layout/separator-layout";
 import { getUserInfo } from "@entities/user";
 import { UserLogo } from "@core-components/user-logo";
-import { ArrowBack } from "@shared/ui/arrow-back";
+import PageHeader from "@shared/ui/page-header";
 import Separator from "@shared/ui/separator";
 import BlogPost from "@core-components/blog-post";
 import Loader from "@shared/ui/loader";
@@ -19,25 +19,25 @@ const UserPosts = () => {
 
   const isLoading = useUserPostsStore((state) => state.isLoading);
   const posts = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.posts || null
+    (state) => state.stack[state.currentIndex]?.posts || null,
   );
   const logoKey = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.logoKey || ""
+    (state) => state.stack[state.currentIndex]?.logoKey || "",
   );
   const userId = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.userId || ""
+    (state) => state.stack[state.currentIndex]?.userId || "",
   );
   const name = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.name || ""
+    (state) => state.stack[state.currentIndex]?.name || "",
   );
   const description = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.description || ""
+    (state) => state.stack[state.currentIndex]?.description || "",
   );
   const postsPage = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.postsPage || 1
+    (state) => state.stack[state.currentIndex]?.postsPage || 1,
   );
   const postsHasMore = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.postsHasMore
+    (state) => state.stack[state.currentIndex]?.postsHasMore,
   );
 
   const {
@@ -125,13 +125,13 @@ const UserPosts = () => {
       });
       if (node) observer.current.observe(node);
     },
-    [isLoading, postsHasMore, loadMore]
+    [isLoading, postsHasMore, loadMore],
   );
 
   return (
     <SeparatorLayout>
       <div style={{ height: "100%" }}>
-        <ArrowBack onBack={() => popView()} />
+        <PageHeader title="Posts" onBack={() => popView()} />
         {logoKey != "" && (
           <div className={classes.accountHeader}>
             <UserLogo className={classes.userLogo} logoKey={logoKey} />

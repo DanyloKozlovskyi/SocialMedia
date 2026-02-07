@@ -1,0 +1,19 @@
+.pageHeader {
+  display: flex;
+  align-items: center;
+  padding: 4px 16px;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid #e6e6e6;
+  min-height: 53px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  margin-left: 8px;
+  color: #0f1419;
+}

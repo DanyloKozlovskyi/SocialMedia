@@ -3,7 +3,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { getPersonalInfo, getUserId } from "@entities/user";
 import { EditProfileButton } from "@features/edit-profile";
 import { UserLogo } from "@core-components/user-logo";
-import { ArrowBack } from "@shared/ui/arrow-back";
+import PageHeader from "@shared/ui/page-header";
 import Loader from "@shared/ui/loader";
 import Separator from "@shared/ui/separator";
 import BlogPost from "@core-components/blog-post";
@@ -130,13 +130,13 @@ const Account = () => {
 
       if (node) observer.current.observe(node);
     },
-    [isLoading, hasMore, loadMore]
+    [isLoading, hasMore, loadMore],
   );
 
   return (
     <div className={classes.accountWrapper}>
       <SeparatorLayout>
-        <ArrowBack />
+        <PageHeader title="Profile" />
 
         <div className={classes.accountHeader}>
           <UserLogo className={classes.userLogo} logoKey={logoKey} />
