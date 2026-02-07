@@ -27,7 +27,7 @@ const BlogPost = ({
   likeCount,
   isCommented,
   commentCount,
-  width = 500,
+  width = 700,
 }: BlogPostProps) => {
   const router = useRouter();
   const { mediaSrc } = useMedia(
