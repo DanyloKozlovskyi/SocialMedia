@@ -1,15 +1,11 @@
 import api, { ENDPOINTS } from "@shared/api";
-import axios from "axios";
 import { UploadUrlModel } from "./interfaces";
 
-const BASE = process.env.NEXT_PUBLIC_BACKEND_URL!;
-
 async function getSignedImageUrl(key: string): Promise<string> {
-  const url = `${BASE}/images/download-url?key=${encodeURIComponent(key)}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Error fetching signed URL: ${res.status}`);
-  const { url: signedUrl } = await res.json();
-  return signedUrl;
+  const response = await api.get(`${ENDPOINTS.IMAGES}/download-url`, {
+    params: { key },
+  });
+  return response.data.url;
 }
 
 async function fetchImageAsBlobURL(key: string): Promise<string> {
@@ -37,11 +33,16 @@ const getUploadLogoUrl = async (fileName: string): Promise<UploadUrlModel> => {
 async function saveFileIntoBlob(
   file: File,
   uploadUrl: string,
-  contentType: string
+  contentType: string,
 ): Promise<void> {
-  await axios.put(uploadUrl, file, {
+  await api.put(uploadUrl, file, {
     headers: { "Content-Type": contentType },
   });
 }
 
-export { fetchImageAsBlobURL, getUploadUrl, saveFileIntoBlob, getUploadLogoUrl };
+export {
+  fetchImageAsBlobURL,
+  getUploadUrl,
+  saveFileIntoBlob,
+  getUploadLogoUrl,
+};

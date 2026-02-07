@@ -5,6 +5,7 @@ using SocialMedia.Application.Images;
 namespace SocialMedia.WebApi.Controllers;
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class ImagesController : ControllerBase
 {
 	private readonly IImageService _imageService;
@@ -15,7 +16,6 @@ public class ImagesController : ControllerBase
 	}
 
 	[HttpGet("upload-url")]
-	[AllowAnonymous]
 	public IActionResult GetUploadUrl([FromQuery] string fileName)
 	{
 		var (key, uploadUrl, contentType) = _imageService.GetUploadUrl(fileName);
@@ -23,7 +23,6 @@ public class ImagesController : ControllerBase
 	}
 
 	[HttpGet("{*key}")]
-	[AllowAnonymous]
 	public async Task<IActionResult> Download(string key)
 	{
 		string decodedKey = Uri.UnescapeDataString(key);
@@ -42,7 +41,6 @@ public class ImagesController : ControllerBase
 	}
 
 	[HttpGet("download-url")]
-	[AllowAnonymous]
 	public IActionResult GetDownloadUrl([FromQuery] string key)
 	{
 		if (string.IsNullOrEmpty(key))
@@ -53,7 +51,6 @@ public class ImagesController : ControllerBase
 	}
 
 	[HttpGet("validate-content")]
-	[AllowAnonymous]
 	public async Task<IActionResult> ValidateContent([FromQuery] string key)
 	{
 		if (string.IsNullOrWhiteSpace(key))
@@ -73,7 +70,6 @@ public class ImagesController : ControllerBase
 	}
 
 	[HttpGet("upload-url/blog")]
-	[AllowAnonymous]
 	public IActionResult GetUploadBlogUrl([FromQuery] string fileName)
 	{
 		var (key, uploadUrl, contentType) = _imageService.GetUploadUrlForBlog(fileName);
@@ -81,7 +77,6 @@ public class ImagesController : ControllerBase
 	}
 
 	[HttpGet("upload-url/logo")]
-	[AllowAnonymous]
 	public IActionResult GetUploadLogoUrl([FromQuery] string fileName)
 	{
 		var (key, uploadUrl, contentType) = _imageService.GetUploadUrlForLogo(fileName);

@@ -50,7 +50,7 @@ namespace SocialMedia.WebApi.Controllers
 		}
 
 		[HttpGet("[action]/{userId}")]
-		[AllowAnonymous]
+		[Authorize]
 		public async Task<IActionResult> GetUserInfo([FromRoute] Guid userId)
 		{
 			var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Id == userId);
@@ -58,7 +58,7 @@ namespace SocialMedia.WebApi.Controllers
 		}
 
 		[HttpGet("[action]")]
-		[AllowAnonymous]
+		[Authorize]
 		public async Task<IActionResult> FilterUsers([FromQuery] string query = "", [FromQuery] int page = 1, [FromQuery] int pageSize = 30)
 		{
 			var usersQuery = _userManager.Users.AsQueryable();
