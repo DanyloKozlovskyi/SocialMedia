@@ -145,7 +145,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     const { activeConversationId, messages } = get();
 
     if (message.conversationId === activeConversationId) {
-      set({ messages: [...messages, message] });
+      const messageExists = messages.some((m) => m.id === message.id);
+      if (!messageExists) {
+        set({ messages: [...messages, message] });
+      }
     }
 
     set((state) => {

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { UserLogo } from "@core-components/user-logo";
-import { fetchImageAsBlobURL } from "@entities/image";
-import { getSignedVideoUrl } from "@entities/video";
+import LightboxImage from "@shared/ui/lightbox-image";
+import VideoPlayer from "@shared/ui/video-player";
+import { useMedia } from "@entities/media/lib/useMedia";
 import { Message } from "../../model/types";
 import classes from "./MessageBubble.module.scss";
 
@@ -15,45 +16,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   message,
   isOwn,
 }) => {
-  const [mediaSrc, setMediaSrc] = useState<string | null>(null);
+  const { mediaSrc } = useMedia(
+    message.mediaKey || null,
+    (message.mediaType as "image" | "video") || null,
+  );
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
-
-  useEffect(() => {
-    if (!message.mediaKey || !message.mediaType) {
-      setMediaSrc(null);
-      return;
-    }
-
-    if (message.mediaType === "video") {
-      getSignedVideoUrl(message.mediaKey)
-        .then((url: string) => {
-          setMediaSrc(url);
-        })
-        .catch((err) => {
-          console.error("Failed to load video URL:", err);
-          setMediaSrc(null);
-        });
-    } else if (message.mediaType === "image") {
-      fetchImageAsBlobURL(message.mediaKey)
-        .then((url: string) => {
-          setMediaSrc(url);
-        })
-        .catch((err) => {
-          console.error("Failed to load image:", err);
-          setMediaSrc(null);
-        });
-    }
-
-    return () => {
-      if (mediaSrc && message.mediaType === "image") {
-        URL.revokeObjectURL(mediaSrc);
-      }
-    };
-  }, [message.mediaKey, message.mediaType]);
 
   return (
     <div
@@ -75,15 +46,16 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         )}
 
         {message.mediaKey && message.mediaType === "image" && mediaSrc && (
-          <div className={classes.media}>
-            <img src={mediaSrc} alt="Shared image" />
-          </div>
+          <LightboxImage
+            className={classes.mediaImage}
+            src={mediaSrc}
+            alt="Shared image"
+            width={300}
+          />
         )}
 
         {message.mediaKey && message.mediaType === "video" && mediaSrc && (
-          <div className={classes.media}>
-            <video controls src={mediaSrc} />
-          </div>
+          <VideoPlayer src={mediaSrc} className={classes.media} />
         )}
 
         <div className={classes.timestamp}>{formatTime(message.createdAt)}</div>

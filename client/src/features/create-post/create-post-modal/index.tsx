@@ -1,18 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useIntl } from "react-intl";
 import { Modal, Backdrop, Box, Slide } from "@mui/material";
 import { createPost } from "@entities/blog-post";
 import CloseIcon from "@assets/shared/close.svg";
 import UploadFile from "@shared/ui/upload-file";
 import TextArea from "@shared/ui/text-area";
-import { getUploadUrl, saveFileIntoBlob } from "@entities/image";
-import {
-  startVideoUpload,
-  completeVideoUpload,
-  uploadVideoToR2,
-  validateVideoFile,
-  ALLOWED_CONTENT_TYPE,
-} from "@entities/video";
+import { useFileUpload } from "@shared/lib/hooks/useFileUpload";
 import Button from "@shared/ui/buttons/button";
 import classes from "./create-post-modal.module.scss";
 
@@ -32,171 +25,61 @@ const CreatePostModal = ({
   parentId = null,
 }: CreatePostModalProps) => {
   const [description, setDescription] = useState<string>("");
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [fileType, setFileType] = useState<"image" | "video" | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [postError, setPostError] = useState<string | null>(null);
   const intl = useIntl();
+
+  const {
+    file,
+    previewUrl,
+    fileType,
+    isUploading,
+    error,
+    handleFileSelect,
+    uploadFile,
+    clearState,
+  } = useFileUpload({
+    onUploadComplete: async (result) => {
+      try {
+        await createPost({
+          description,
+          mediaKey: result.mediaKey,
+          mediaType: result.mediaType,
+          mediaContentType: result.mediaContentType,
+          parentId,
+        });
+        handleClose();
+      } catch (err) {
+        let errorMessage = "Failed to create post";
+        if (err && typeof err === "object") {
+          const error = err as Record<string, unknown>;
+          if (error.response && typeof error.response === "object") {
+            const response = error.response as Record<string, unknown>;
+            if (response.data && typeof response.data === "object") {
+              const data = response.data as Record<string, unknown>;
+              errorMessage = String(data.error) || errorMessage;
+            }
+          } else if (error.message) {
+            errorMessage = String(error.message);
+          }
+        }
+        setPostError(errorMessage);
+        console.error(err);
+      }
+    },
+  });
 
   const handleClose = () => {
     setDescription("");
-    setFile(null);
-    setFileType(null);
-    setError(null);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-    setPreviewUrl(null);
+    setPostError(null);
+    clearState();
     onClose?.();
-  };
-  const fetchUploadParams = async (fileName: string) => {
-    const { uploadUrl, key, contentType } = await getUploadUrl(fileName);
-    return { uploadUrl, key, contentType };
-  };
-
-  const uploadToBlob = async (
-    file: File,
-    uploadUrl: string,
-    contentType: string,
-  ) => {
-    await saveFileIntoBlob(file, uploadUrl, contentType);
-  };
-
-  const uploadFileIntoBlob = async () => {
-    if (!file) return { mediaKey: null, mediaContentType: null };
-
-    const { uploadUrl, key, contentType } = await fetchUploadParams(file.name);
-    await uploadToBlob(file, uploadUrl, contentType);
-
-    return { mediaKey: key, mediaContentType: contentType };
-  };
-
-  const uploadVideoFile = async () => {
-    if (!file)
-      return {
-        mediaKey: null,
-        mediaType: "video" as const,
-        mediaContentType: null,
-      };
-
-    const { uploadUrl, storageKey } = await startVideoUpload(
-      file.name,
-      file.size,
-      ALLOWED_CONTENT_TYPE,
-    );
-
-    await uploadVideoToR2(file, uploadUrl, ALLOWED_CONTENT_TYPE);
-
-    const { mediaContentType } = await completeVideoUpload(
-      storageKey,
-      undefined,
-      undefined,
-    );
-
-    return {
-      mediaKey: storageKey,
-      mediaType: "video" as const,
-      mediaContentType,
-    };
   };
 
   const handleSubmit = async () => {
     if (!file) return;
-
-    setIsUploading(true);
-    setError(null);
-
-    try {
-      if (fileType === "video") {
-        const { mediaKey, mediaType, mediaContentType } =
-          await uploadVideoFile();
-        await createPost({
-          description,
-          mediaKey,
-          mediaType,
-          mediaContentType,
-          parentId,
-        });
-      } else if (fileType === "image") {
-        const { mediaKey, mediaContentType } = await uploadFileIntoBlob();
-        await createPost({
-          description,
-          mediaKey,
-          mediaType: "image",
-          mediaContentType,
-          parentId,
-        });
-      }
-
-      handleClose();
-    } catch (err) {
-      let errorMessage = "Upload failed";
-      if (err && typeof err === "object") {
-        const error = err as Record<string, unknown>;
-        if (error.response && typeof error.response === "object") {
-          const response = error.response as Record<string, unknown>;
-          if (response.data && typeof response.data === "object") {
-            const data = response.data as Record<string, unknown>;
-            errorMessage = String(data.error) || errorMessage;
-          }
-        } else if (error.message) {
-          errorMessage = String(error.message);
-        }
-      }
-      setError(errorMessage);
-      console.error(err);
-    } finally {
-      setIsUploading(false);
-    }
+    setPostError(null);
+    await uploadFile();
   };
-
-  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    setError(null);
-
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-
-    if (!selectedFile) {
-      setFile(null);
-      setFileType(null);
-      setPreviewUrl(null);
-      return;
-    }
-
-    if (selectedFile.type.startsWith("image/")) {
-      setFile(selectedFile);
-      setFileType("image");
-      setPreviewUrl(URL.createObjectURL(selectedFile));
-    } else if (selectedFile.type === "video/mp4") {
-      const validation = validateVideoFile(selectedFile);
-      if (!validation.valid) {
-        setError(validation.error || "Invalid video file");
-        setFile(null);
-        setFileType(null);
-        setPreviewUrl(null);
-        return;
-      }
-      setFile(selectedFile);
-      setFileType("video");
-      setPreviewUrl(URL.createObjectURL(selectedFile));
-    } else {
-      setError("Please select an image or MP4 video");
-      setFile(null);
-      setFileType(null);
-      setPreviewUrl(null);
-    }
-  };
-
-  useEffect(() => {
-    if (!previewUrl) return;
-
-    return () => {
-      URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
 
   return (
     <div>
@@ -242,13 +125,13 @@ const CreatePostModal = ({
               />
               <UploadFile
                 className={classes.uploadFile}
-                onUpload={handleUpload}
+                onUpload={handleFileSelect}
                 previewUrl={previewUrl}
-                setPreviewUrl={setPreviewUrl}
-                setFile={setFile}
+                setPreviewUrl={() => {}}
+                setFile={() => {}}
                 fileType={fileType}
               />
-              {error && (
+              {(error || postError) && (
                 <div
                   style={{
                     padding: "0.75rem",
@@ -260,7 +143,7 @@ const CreatePostModal = ({
                     marginBottom: "1rem",
                   }}
                 >
-                  {error}
+                  {error || postError}
                 </div>
               )}
               <div
