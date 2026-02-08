@@ -11,4 +11,5 @@ public interface IChatService
     Task<Guid> CreateGroupConversation(Guid currentUserId, string? name, List<Guid> participantIds);
     Task<MessageDto> SendMessage(Guid senderId, Guid conversationId, string? content, string? mediaKey, string? mediaContentType, string? mediaType);
     Task MarkAsRead(Guid messageId);
+    Task MarkConversationAsRead(Guid conversationId, Guid userId);
 }

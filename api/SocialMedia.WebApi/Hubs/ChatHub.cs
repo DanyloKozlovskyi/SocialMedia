@@ -75,4 +75,15 @@ public class ChatHub : Hub
 	{
 		await _chatService.MarkAsRead(messageId);
 	}
+
+	public async Task MarkConversationAsRead(Guid conversationId)
+	{
+		var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
+		{
+			throw new HubException("Unauthorized");
+		}
+
+		await _chatService.MarkConversationAsRead(conversationId, userId);
+	}
 }

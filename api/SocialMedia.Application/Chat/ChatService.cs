@@ -166,4 +166,18 @@ public class ChatService : IChatService
             await _messageRepository.SaveChangesAsync();
         }
     }
+
+    public async Task MarkConversationAsRead(Guid conversationId, Guid userId)
+    {
+        var messages = await _messageRepository.GetMessagesByConversationId(conversationId);
+        var unread = messages.Where(m => m.SenderId != userId && !m.IsRead).ToList();
+        if (unread.Any())
+        {
+            foreach (var message in unread)
+            {
+                message.IsRead = true;
+            }
+            await _messageRepository.SaveChangesAsync();
+        }
+    }
 }

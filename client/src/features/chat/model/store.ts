@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { ChatState, Message, chatApi } from "@entities/chat";
+import { getCurrentUserId } from "@shared/lib/hooks/useCurrentUser";
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -68,10 +69,20 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   selectConversation: async (conversationId: string) => {
+    const { connection } = get();
     set({ isLoading: true, activeConversationId: conversationId });
     try {
       const messages = await chatApi.getMessages(conversationId);
       set({ messages, isLoading: false });
+
+      if (connection) {
+        await connection.invoke("MarkConversationAsRead", conversationId);
+        set((state) => ({
+          conversations: state.conversations.map((c) =>
+            c.conversationId === conversationId ? { ...c, unreadCount: 0 } : c,
+          ),
+        }));
+      }
     } catch (error) {
       console.error("Error loading conversation:", error);
       set({ isLoading: false });
@@ -151,13 +162,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       }
     }
 
+    const currentUserId = getCurrentUserId();
+
     set((state) => {
       const updatedConversations = state.conversations.map((conv) => {
         if (conv.conversationId === message.conversationId) {
+          const isOwnMessage = currentUserId === message.senderId;
           return {
             ...conv,
             lastMessage: message,
-            unreadCount: conv.unreadCount + 1,
+            unreadCount: isOwnMessage ? conv.unreadCount : conv.unreadCount + 1,
           };
         }
         return conv;

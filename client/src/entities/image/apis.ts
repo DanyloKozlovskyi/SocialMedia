@@ -1,3 +1,4 @@
+import axios from "axios";
 import api, { ENDPOINTS } from "@shared/api";
 import { UploadUrlModel } from "./interfaces";
 
@@ -35,7 +36,7 @@ async function saveFileIntoBlob(
   uploadUrl: string,
   contentType: string,
 ): Promise<void> {
-  await api.put(uploadUrl, file, {
+  await axios.put(uploadUrl, file, {
     headers: { "Content-Type": contentType },
   });
 }
