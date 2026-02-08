@@ -136,6 +136,7 @@ export const GlobalChatWidget: React.FC<GlobalChatWidgetProps> = ({
   return (
     <div className={`${classes.chatWidget} ${classes.chat}`}>
       <ChatWindow
+        key={activeConversationId}
         messages={messages}
         currentUserId={currentUserId}
         otherUser={

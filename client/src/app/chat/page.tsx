@@ -79,6 +79,7 @@ export default function ChatPage() {
       <div className={classes.mainChat}>
         {activeConversationId ? (
           <ChatWindow
+            key={activeConversationId}
             messages={messages}
             currentUserId={userId}
             otherUser={
