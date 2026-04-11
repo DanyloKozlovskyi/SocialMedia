@@ -32,6 +32,10 @@ export const GlobalChatWidget: React.FC<GlobalChatWidgetProps> = ({
     selectConversation,
     sendMessage,
     loadConversations,
+
+    loadMoreMessages,
+    hasMore,
+    isFetchingOlder,
   } = useChatStore();
 
   useEffect(() => {
@@ -151,6 +155,9 @@ export const GlobalChatWidget: React.FC<GlobalChatWidgetProps> = ({
         isLoading={isLoading}
         onSendMessage={handleSendMessage}
         onClose={handleBack}
+        loadMoreMessages={loadMoreMessages}
+        hasMore={hasMore}
+        isFetchingOlder={isFetchingOlder}
       />
     </div>
   );

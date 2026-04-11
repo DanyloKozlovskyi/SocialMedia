@@ -4,7 +4,8 @@ namespace SocialMedia.Application.Chat;
 
 public interface IMessageRepository
 {
-    Task<IEnumerable<Message>> GetMessagesByConversationId(Guid conversationId);
+	Task<IEnumerable<Message>> GetPagedMessagesByConversationId(Guid conversationId, DateTime? cursor, int limit);
+	Task<IEnumerable<Message>> GetMessagesByConversationId(Guid conversationId);
     Task<Message> Create(Message message);
     Task<Message?> GetById(Guid messageId);
     Task Update(Message message);

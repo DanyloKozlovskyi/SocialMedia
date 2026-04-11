@@ -32,7 +32,7 @@ public class MessagesController : ControllerBase
 	}
 
 	[HttpGet("conversation/{conversationId}")]
-	public async Task<IActionResult> GetMessages(Guid conversationId)
+	public async Task<IActionResult> GetMessages(Guid conversationId, [FromQuery] DateTime? cursor, [FromQuery] int limit = 20)
 	{
 		var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 		if (currentUserIdClaim == null || !Guid.TryParse(currentUserIdClaim, out var currentUserId))
@@ -42,7 +42,8 @@ public class MessagesController : ControllerBase
 
 		try
 		{
-			var messages = await _chatService.GetMessages(conversationId, currentUserId);
+			var messages = await _chatService.GetMessages(conversationId, currentUserId, cursor, limit);
+
 			return Ok(messages);
 		}
 		catch (UnauthorizedAccessException)

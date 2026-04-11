@@ -19,6 +19,10 @@ export default function ChatPage() {
     isLoading,
     selectConversation,
     sendMessage,
+
+    loadMoreMessages,
+    hasMore,
+    isFetchingOlder,
   } = useChatStore();
 
   useEffect(() => {
@@ -99,6 +103,10 @@ export default function ChatPage() {
             }
             isLoading={isLoading}
             onSendMessage={handleSendMessage}
+            
+            loadMoreMessages={loadMoreMessages}
+            hasMore={hasMore}
+            isFetchingOlder={isFetchingOlder} 
           />
         ) : (
           <div className={classes.emptyState}>

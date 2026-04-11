@@ -47,7 +47,7 @@ const UserSearch = ({ className, query }: SearchUserProps) => {
         const result = await filterUsers(
           normalizedQuery,
           isNext ? page : 1,
-          pageSize
+          pageSize,
         );
         if (!isNext) {
           setUsers(result, normalizedQuery);
@@ -65,11 +65,17 @@ const UserSearch = ({ className, query }: SearchUserProps) => {
         setLoading(false);
       }
     },
-    [normalizedQuery, page, hasMore, isLoading]
+    [normalizedQuery, page, hasMore, isLoading],
   );
 
   useLayoutEffect(() => {
-    if (normalizedQuery !== lastQuery || !normalizedQuery) {
+    if (!normalizedQuery) {
+      clearUsers();
+      setHasMore(false);
+      setPage(1);
+      return;
+    }
+    if (normalizedQuery !== lastQuery) {
       clearUsers();
       setHasMore(false);
       setPage(1);
@@ -95,7 +101,7 @@ const UserSearch = ({ className, query }: SearchUserProps) => {
       });
       if (node) observer.current.observe(node);
     },
-    [isLoading, hasMore, loadUsers]
+    [isLoading, hasMore, loadUsers],
   );
 
   return (

@@ -39,19 +39,21 @@ public class ChatService : IChatService
         });
     }
 
-    public async Task<IEnumerable<MessageDto>> GetMessages(Guid conversationId, Guid userId)
-    {
-        var isParticipant = await _conversationRepository.IsParticipant(conversationId, userId);
-        if (!isParticipant)
-        {
-            throw new UnauthorizedAccessException("User is not a participant of this conversation");
-        }
+	public async Task<IEnumerable<MessageDto>> GetMessages(Guid conversationId, Guid userId, DateTime? cursor = null, int limit = 20)
+	{
+		var isParticipant = await _conversationRepository.IsParticipant(conversationId, userId);
+		if (!isParticipant)
+		{
+			throw new UnauthorizedAccessException("User is not a participant of this conversation");
+		}
 
-        var messages = await _messageRepository.GetMessagesByConversationId(conversationId);
-        return messages.Select(MessageDto.FromEntity);
-    }
+		// Pass the cursor and limit to the repository to execute at the DB level
+		var messages = await _messageRepository.GetPagedMessagesByConversationId(conversationId, cursor, limit);
 
-    public async Task<Guid> StartConversation(Guid currentUserId, Guid otherUserId)
+		return messages.Select(MessageDto.FromEntity);
+	}
+
+	public async Task<Guid> StartConversation(Guid currentUserId, Guid otherUserId)
     {
         var existingConversation = await _conversationRepository.GetExistingDirectConversation(currentUserId, otherUserId);
         

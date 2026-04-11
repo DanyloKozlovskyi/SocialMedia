@@ -22,7 +22,27 @@ public class MessageRepository : IMessageRepository
             .ToListAsync();
     }
 
-    public async Task<Message> Create(Message message)
+	public async Task<IEnumerable<Message>> GetPagedMessagesByConversationId(Guid conversationId, DateTime? cursor, int limit)
+	{
+		var query = _context.Messages
+			.Where(m => m.ConversationId == conversationId)
+			.Include(m => m.Sender)
+			.AsQueryable();
+
+		if (cursor.HasValue)
+		{
+			query = query.Where(m => m.CreatedAt < cursor.Value);
+		}
+
+		var messages = await query
+			.OrderByDescending(m => m.CreatedAt)
+			.Take(limit)
+			.ToListAsync();
+
+		return messages.OrderBy(m => m.CreatedAt).ToList();
+	}
+
+	public async Task<Message> Create(Message message)
     {
         _context.Messages.Add(message);
         return message;

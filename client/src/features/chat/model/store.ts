@@ -23,6 +23,10 @@ interface ChatStore extends ChatState {
   ) => Promise<void>;
   loadConversations: () => Promise<void>;
   receiveMessage: (message: Message) => void;
+
+  hasMore: boolean;
+  isFetchingOlder: boolean;
+  loadMoreMessages: () => Promise<void>;
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -32,6 +36,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   messages: [],
   isConnected: false,
   isLoading: false,
+  hasMore: true,
+  isFetchingOlder: false,
 
   initializeConnection: async (token: string) => {
     const { connection } = get();
@@ -70,10 +76,17 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
   selectConversation: async (conversationId: string) => {
     const { connection } = get();
-    set({ isLoading: true, activeConversationId: conversationId });
+    set({ isLoading: true, activeConversationId: conversationId, hasMore: true, messages: [] });
+    
     try {
-      const messages = await chatApi.getMessages(conversationId);
-      set({ messages, isLoading: false });
+      const response = await chatApi.getMessages(conversationId);
+      const messages = response || [];
+      
+      set({ 
+        messages, 
+        isLoading: false, 
+        hasMore: Boolean(messages.length >= 20) 
+      });
 
       if (connection) {
         await connection.invoke("MarkConversationAsRead", conversationId);
@@ -86,6 +99,30 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     } catch (error) {
       console.error("Error loading conversation:", error);
       set({ isLoading: false });
+    }
+  },
+
+  loadMoreMessages: async () => {
+    const { activeConversationId, messages, isFetchingOlder, hasMore } = get();
+    
+    if (!activeConversationId || isFetchingOlder || !hasMore || !messages || messages.length === 0) return;
+
+    set({ isFetchingOlder: true });
+    
+    try {
+      const cursor = messages[0].createdAt; 
+      
+      const response = await chatApi.getMessages(activeConversationId, cursor);
+      const olderMessages = response || [];
+
+      set((state) => ({
+        messages: [...olderMessages, ...state.messages],
+        hasMore: Boolean(olderMessages.length >= 20), 
+        isFetchingOlder: false,
+      }));
+    } catch (error) {
+      console.error("Error loading older messages:", error);
+      set({ isFetchingOlder: false });
     }
   },
 

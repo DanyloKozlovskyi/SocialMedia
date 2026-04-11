@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useLayoutEffect,
+} from "react";
 import dayjs, { Dayjs } from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
 import { UserLogo } from "@core-components/user-logo";
@@ -26,6 +32,10 @@ interface ChatWindowProps {
     mediaType?: string,
   ) => void;
   onClose?: () => void;
+
+  loadMoreMessages: () => void;
+  hasMore: boolean;
+  isFetchingOlder: boolean;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -35,6 +45,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   isLoading,
   onSendMessage,
   onClose,
+
+  loadMoreMessages,
+  hasMore,
+  isFetchingOlder,
 }) => {
   const messagesAreaRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
@@ -43,41 +57,45 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const [isLayoutReady, setIsLayoutReady] = useState(false);
   const prevMessageCount = useRef(0);
   const userHasScrolled = useRef(false);
+  const previousScrollHeight = useRef<number>(0);
 
   const handleScroll = () => {
     const container = messagesAreaRef.current;
     if (!container || !isLayoutReady) return;
 
+    if (container.scrollTop === 0 && hasMore && !isFetchingOlder) {
+      previousScrollHeight.current = container.scrollHeight;
+      loadMoreMessages();
+    }
+
     const distanceFromBottom =
       container.scrollHeight - container.scrollTop - container.clientHeight;
     if (distanceFromBottom > 50) {
-      if (!userHasScrolled.current) {
-        console.log(
-          `DEBUG: User scrolled away from bottom. Distance: ${distanceFromBottom}`,
-        );
-      }
       userHasScrolled.current = true;
     } else {
       userHasScrolled.current = false;
     }
   };
 
+  useLayoutEffect(() => {
+    const container = messagesAreaRef.current;
+    if (container && !isFetchingOlder && previousScrollHeight.current > 0) {
+      const heightDifference =
+        container.scrollHeight - previousScrollHeight.current;
+      container.scrollTop = heightDifference;
+      previousScrollHeight.current = 0;
+    }
+  }, [messages.length, isFetchingOlder]);
+
   useEffect(() => {
     const container = messagesAreaRef.current;
     if (!container || messages.length === 0) return;
-
-    console.log(
-      `DEBUG: useEffect triggered. messages.length=${messages.length}, prevCount=${prevMessageCount.current}, userHasScrolled=${userHasScrolled.current}`,
-    );
 
     if (prevMessageCount.current === 0) {
       let lastHeight = 0;
       let stableCount = 0;
 
       const finalize = () => {
-        console.log(
-          `DEBUG: finalize() called. scrollHeight=${container.scrollHeight}`,
-        );
         container.scrollTop = container.scrollHeight;
         setIsLayoutReady(true);
       };
@@ -109,15 +127,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       };
     }
 
-    if (messages.length > prevMessageCount.current) {
-      console.log(
-        `DEBUG: New message detected. userHasScrolled=${userHasScrolled.current}`,
-      );
+    if (
+      messages.length > prevMessageCount.current &&
+      previousScrollHeight.current === 0
+    ) {
       if (!userHasScrolled.current) {
-        console.log("DEBUG: Scrolling to bottom for new message.");
         container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
-      } else {
-        console.log("DEBUG: Skipping scroll — user has scrolled away.");
       }
     }
 
@@ -198,6 +213,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <>
             {!isLayoutReady && (
               <div className={classes.loading}>Loading messages...</div>
+            )}
+            {isFetchingOlder && (
+              <div className={classes.loadingOlder}>
+                Loading previous messages...
+              </div>
             )}
             <div style={{ visibility: isLayoutReady ? "visible" : "hidden" }}>
               {chatItems.map((item, index) => {

@@ -7,8 +7,18 @@ export const chatApi = {
     return response.data;
   },
 
-  async getMessages(conversationId: string): Promise<Message[]> {
-    const response = await api.get(`/messages/conversation/${conversationId}`);
+  async getMessages(
+    conversationId: string,
+    cursor?: string,
+    limit: number = 20,
+  ): Promise<Message[]> {
+    const response = await api.get(`/messages/conversation/${conversationId}`, {
+      params: {
+        cursor: cursor,
+        limit: limit,
+      },
+    });
+
     return response.data;
   },
 
