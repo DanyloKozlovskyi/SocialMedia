@@ -5,6 +5,8 @@ import { getCurrentUserId } from "@shared/lib/hooks/useCurrentUser";
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+type WidgetState = "collapsed" | "list" | "chat";
+
 interface ChatStore extends ChatState {
   initializeConnection: (token: string) => Promise<void>;
   disconnectConnection: () => Promise<void>;
@@ -27,6 +29,10 @@ interface ChatStore extends ChatState {
   hasMore: boolean;
   isFetchingOlder: boolean;
   loadMoreMessages: () => Promise<void>;
+
+  widgetState: WidgetState;
+  setWidgetState: (state: WidgetState) => void;
+  openChatWithUser: (otherUserId: string) => Promise<void>;
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -38,6 +44,17 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   isLoading: false,
   hasMore: true,
   isFetchingOlder: false,
+
+  widgetState: "collapsed",
+  setWidgetState: (state) => set({ widgetState: state }),
+  openChatWithUser: async (otherUserId: string) => {
+    const { startConversation, selectConversation } = get();
+    const conversationId = await startConversation(otherUserId);
+    if (conversationId) {
+      set({ widgetState: "chat" });
+      await selectConversation(conversationId);
+    }
+  },
 
   initializeConnection: async (token: string) => {
     const { connection } = get();
@@ -76,16 +93,21 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
   selectConversation: async (conversationId: string) => {
     const { connection } = get();
-    set({ isLoading: true, activeConversationId: conversationId, hasMore: true, messages: [] });
-    
+    set({
+      isLoading: true,
+      activeConversationId: conversationId,
+      hasMore: true,
+      messages: [],
+    });
+
     try {
       const response = await chatApi.getMessages(conversationId);
       const messages = response || [];
-      
-      set({ 
-        messages, 
-        isLoading: false, 
-        hasMore: Boolean(messages.length >= 20) 
+
+      set({
+        messages,
+        isLoading: false,
+        hasMore: Boolean(messages.length >= 20),
       });
 
       if (connection) {
@@ -104,20 +126,27 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
   loadMoreMessages: async () => {
     const { activeConversationId, messages, isFetchingOlder, hasMore } = get();
-    
-    if (!activeConversationId || isFetchingOlder || !hasMore || !messages || messages.length === 0) return;
+
+    if (
+      !activeConversationId ||
+      isFetchingOlder ||
+      !hasMore ||
+      !messages ||
+      messages.length === 0
+    )
+      return;
 
     set({ isFetchingOlder: true });
-    
+
     try {
-      const cursor = messages[0].createdAt; 
-      
+      const cursor = messages[0].createdAt;
+
       const response = await chatApi.getMessages(activeConversationId, cursor);
       const olderMessages = response || [];
 
       set((state) => ({
         messages: [...olderMessages, ...state.messages],
-        hasMore: Boolean(olderMessages.length >= 20), 
+        hasMore: Boolean(olderMessages.length >= 20),
         isFetchingOlder: false,
       }));
     } catch (error) {

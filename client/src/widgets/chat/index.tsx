@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import ChatIcon from "@mui/icons-material/Chat";
 import CloseIcon from "@mui/icons-material/Close";
 import { useChatStore } from "@features/chat/model/store";
@@ -13,14 +13,10 @@ interface GlobalChatWidgetProps {
   currentUserId: string;
 }
 
-type WidgetState = "collapsed" | "list" | "chat";
-
 export const GlobalChatWidget: React.FC<GlobalChatWidgetProps> = ({
   token,
   currentUserId,
 }) => {
-  const [widgetState, setWidgetState] = useState<WidgetState>("collapsed");
-
   const {
     connection,
     conversations,
@@ -36,6 +32,8 @@ export const GlobalChatWidget: React.FC<GlobalChatWidgetProps> = ({
     loadMoreMessages,
     hasMore,
     isFetchingOlder,
+    widgetState,
+    setWidgetState,
   } = useChatStore();
 
   useEffect(() => {

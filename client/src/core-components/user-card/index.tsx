@@ -13,7 +13,7 @@ type Props = {
 
 export default function UserCard({ user }: Props) {
   const router = useRouter();
-  const { startConversation, selectConversation } = useChatStore();
+  const { openChatWithUser } = useChatStore();
 
   const goToUserPosts = (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
@@ -22,11 +22,7 @@ export default function UserCard({ user }: Props) {
 
   const handleMessage = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    const conversationId = await startConversation(user.id);
-    if (conversationId) {
-      selectConversation(conversationId);
-      router.push("/chat");
-    }
+    openChatWithUser(user.id);
   };
 
   return (

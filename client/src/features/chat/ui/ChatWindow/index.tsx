@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
+import { CircularProgress } from "@mui/material";
 import { UserLogo } from "@core-components/user-logo";
 import { MessageBubble } from "@entities/chat/ui/MessageBubble";
 import { ChatInput } from "../ChatInput";
@@ -204,7 +205,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         onScroll={handleScroll}
       >
         {isLoading ? (
-          <div className={classes.loading}>Loading messages...</div>
+          <div className={classes.loading}>
+            <CircularProgress size={24} />
+          </div>
         ) : messages.length === 0 ? (
           <div className={classes.empty}>
             No messages yet. Start the conversation!
@@ -212,11 +215,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         ) : (
           <>
             {!isLayoutReady && (
-              <div className={classes.loading}>Loading messages...</div>
+              <div className={classes.loading}>
+                <CircularProgress size={24} />
+              </div>
             )}
             {isFetchingOlder && (
               <div className={classes.loadingOlder}>
-                Loading previous messages...
+                <CircularProgress size={24} />
               </div>
             )}
             <div style={{ visibility: isLayoutReady ? "visible" : "hidden" }}>
