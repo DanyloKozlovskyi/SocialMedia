@@ -79,12 +79,36 @@
   }
 }
 
-.followBtn {
-  background-color: #f0f0f0;
+.followButton {
+  background-color: #1d9bf0;
+  color: #ffffff;
   border: none;
-  border-radius: 20;
+  border-radius: 20px;
   padding: 6px 16px;
   font-weight: 600;
   cursor: pointer;
   align-self: start;
+  transition: all 0.2s;
+  width: 120px;
+
+  &:hover {
+    background-color: #1a8cd8;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.following {
+    background-color: transparent;
+    color: #0f1419;
+    border: 1px solid #cfd9de;
+
+    &:hover {
+      border-color: #f4212e;
+      color: #f4212e;
+      background-color: rgba(244, 33, 46, 0.1);
+    }
+  }
 }

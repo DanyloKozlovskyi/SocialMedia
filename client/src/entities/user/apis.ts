@@ -1,5 +1,5 @@
 import api, { ENDPOINTS } from "@shared/api";
-import { UpdateUser, User } from "./interfaces";
+import { UpdateUser, User, FollowStatus } from "./interfaces";
 
 const getPersonalInfo = async (): Promise<User> => {
   const response = await api.get(`${ENDPOINTS.ACCOUNT}/GetPersonalInfo`);
@@ -19,12 +19,27 @@ const editProfile = async ({ ...props }: UpdateUser): Promise<User> => {
 const filterUsers = async (
   username: string,
   page: number,
-  pageSize: number
+  pageSize: number,
 ): Promise<Array<User>> => {
   const response = await api.get(
-    `${ENDPOINTS.ACCOUNT}/FilterUsers?query=${username}&page=${page}&pageSize=${pageSize}`
+    `${ENDPOINTS.ACCOUNT}/FilterUsers?query=${username}&page=${page}&pageSize=${pageSize}`,
   );
   return response?.data;
 };
 
-export { getPersonalInfo, getUserInfo, editProfile, filterUsers };
+const followUser = async (targetUserId: string): Promise<string> => {
+  const response = await api.post(`${ENDPOINTS.ACCOUNT}/Follow/${targetUserId}`);
+  return response?.data;
+};
+
+const unfollowUser = async (targetUserId: string): Promise<string> => {
+  const response = await api.delete(`${ENDPOINTS.ACCOUNT}/Unfollow/${targetUserId}`);
+  return response?.data;
+};
+
+const getFollowStatus = async (targetUserId: string): Promise<FollowStatus> => {
+  const response = await api.get(`${ENDPOINTS.ACCOUNT}/GetFollowStatus/${targetUserId}`);
+  return response?.data;
+};
+
+export { getPersonalInfo, getUserInfo, editProfile, filterUsers, followUser, unfollowUser, getFollowStatus };

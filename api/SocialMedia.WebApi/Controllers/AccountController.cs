@@ -21,9 +21,10 @@ namespace SocialMedia.WebApi.Controllers
 		private readonly IJwtService _jwtService;
 		private readonly IImageRepository _imageRepository;
 		private readonly IMapper mapper;
+		private readonly IUserFollowService _userFollowService;
 
 		public AccountController(UserManager<ApplicationUser> userMng,
-			SignInManager<ApplicationUser> signInMng, RoleManager<ApplicationRole> roleMng, IJwtService jwtSvc, IMapper mapp, IImageRepository imageRepository)
+			SignInManager<ApplicationUser> signInMng, RoleManager<ApplicationRole> roleMng, IJwtService jwtSvc, IMapper mapp, IImageRepository imageRepository, IUserFollowService userFollowService)
 		{
 			_userManager = userMng;
 			_signInManager = signInMng;
@@ -31,6 +32,7 @@ namespace SocialMedia.WebApi.Controllers
 			_jwtService = jwtSvc;
 			mapper = mapp;
 			_imageRepository = imageRepository;
+			_userFollowService = userFollowService;
 		}
 
 		private Guid? GetUserId()
@@ -245,6 +247,68 @@ namespace SocialMedia.WebApi.Controllers
 			await _userManager.UpdateAsync(user);
 
 			return Ok(authenticationResponse);
+		}
+
+		[HttpPost("[action]/{targetUserId}")]
+		[Authorize]
+		public async Task<IActionResult> Follow([FromRoute] Guid targetUserId)
+		{
+			var userId = GetUserId();
+			if (userId == null)
+				return Unauthorized();
+
+			if (userId == targetUserId)
+				return BadRequest("You cannot follow yourself");
+
+			var targetUser = await _userManager.FindByIdAsync(targetUserId.ToString());
+			if (targetUser == null)
+				return NotFound("User not found");
+
+			var result = await _userFollowService.Follow(userId.Value, targetUserId);
+			if (!result)
+				return BadRequest("You are already following this user");
+
+			return Ok("Successfully followed user");
+		}
+
+		[HttpDelete("[action]/{targetUserId}")]
+		[Authorize]
+		public async Task<IActionResult> Unfollow([FromRoute] Guid targetUserId)
+		{
+			var userId = GetUserId();
+			if (userId == null)
+				return Unauthorized();
+
+			var result = await _userFollowService.Unfollow(userId.Value, targetUserId);
+			if (!result)
+				return BadRequest("You are not following this user");
+
+			return Ok("Successfully unfollowed user");
+		}
+
+		[HttpGet("[action]/{targetUserId}")]
+		[Authorize]
+		public async Task<IActionResult> GetFollowStatus([FromRoute] Guid targetUserId)
+		{
+			var userId = GetUserId();
+			var status = await _userFollowService.GetFollowStatus(userId, targetUserId);
+			return Ok(status);
+		}
+
+		[HttpGet("[action]/{targetUserId}")]
+		[Authorize]
+		public async Task<IActionResult> GetFollowers([FromRoute] Guid targetUserId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+		{
+			var followers = await _userFollowService.GetFollowers(targetUserId, page, pageSize);
+			return Ok(followers);
+		}
+
+		[HttpGet("[action]/{targetUserId}")]
+		[Authorize]
+		public async Task<IActionResult> GetFollowing([FromRoute] Guid targetUserId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+		{
+			var following = await _userFollowService.GetFollowing(targetUserId, page, pageSize);
+			return Ok(following);
 		}
 	}
 }

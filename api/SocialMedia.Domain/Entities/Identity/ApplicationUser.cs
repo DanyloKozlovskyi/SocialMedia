@@ -15,4 +15,7 @@ public class ApplicationUser : IdentityUser<Guid>
 
 	public string? LogoKey { get; set; }
 	public string? LogoContentType { get; set; }
+
+	public virtual ICollection<UserFollow>? Followers { get; set; }
+	public virtual ICollection<UserFollow>? Following { get; set; }
 }

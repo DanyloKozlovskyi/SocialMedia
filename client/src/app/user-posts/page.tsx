@@ -1,8 +1,21 @@
 "use client";
-import { useEffect, useRef, useCallback, useLayoutEffect } from "react";
+import {
+  useEffect,
+  useRef,
+  useCallback,
+  useLayoutEffect,
+  useState,
+} from "react";
 import { useSearchParams } from "next/navigation";
 import SeparatorLayout from "../layout/separator-layout";
-import { getUserInfo } from "@entities/user";
+import {
+  getUserInfo,
+  getUserId,
+  followUser,
+  unfollowUser,
+  getFollowStatus,
+  FollowStatus,
+} from "@entities/user";
 import { UserLogo } from "@core-components/user-logo";
 import PageHeader from "@shared/ui/page-header";
 import Separator from "@shared/ui/separator";
@@ -16,6 +29,10 @@ import classes from "./user-posts.module.scss";
 const UserPosts = () => {
   const searchParams = useSearchParams();
   const id = searchParams.get("id") ?? "";
+
+  const [followStatus, setFollowStatus] = useState<FollowStatus | null>(null);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [isCurrentUser, setIsCurrentUser] = useState(false);
 
   const isLoading = useUserPostsStore((state) => state.isLoading);
   const posts = useUserPostsStore(
@@ -106,6 +123,45 @@ const UserPosts = () => {
     return () => updateScrollY(window.scrollY);
   }, []);
 
+  useEffect(() => {
+    const loadFollowStatus = async () => {
+      if (!id) return;
+      const currentUserId = await getUserId();
+      setIsCurrentUser(currentUserId === id);
+      if (currentUserId && currentUserId !== id) {
+        const status = await getFollowStatus(id);
+        setFollowStatus(status);
+      }
+    };
+    loadFollowStatus();
+  }, [id]);
+
+  const handleFollow = async () => {
+    if (isFollowLoading || !followStatus) return;
+    setIsFollowLoading(true);
+    try {
+      if (followStatus.isFollowing) {
+        await unfollowUser(id);
+        setFollowStatus({
+          ...followStatus,
+          isFollowing: false,
+          followersCount: followStatus.followersCount - 1,
+        });
+      } else {
+        await followUser(id);
+        setFollowStatus({
+          ...followStatus,
+          isFollowing: true,
+          followersCount: followStatus.followersCount + 1,
+        });
+      }
+    } catch (error) {
+      console.error("Follow action failed:", error);
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
+
   const loadMore = useCallback(async () => {
     if (!postsHasMore || isLoading) return;
     setIsLoading(true);
@@ -137,6 +193,26 @@ const UserPosts = () => {
             <UserLogo className={classes.userLogo} logoKey={logoKey} />
             <div className={classes.userName}>{name}</div>
             <div className={classes.description}>{description}</div>
+            {followStatus && (
+              <div className={classes.followStats}>
+                <span>
+                  <strong>{followStatus.followersCount}</strong> Followers
+                </span>
+                <span>
+                  <strong>{followStatus.followingCount}</strong> Following
+                </span>
+              </div>
+            )}
+            {!isCurrentUser && followStatus && (
+              <button
+                className={`${classes.followButton} ${followStatus.isFollowing ? classes.following : ""}`}
+                onClick={handleFollow}
+                disabled={isFollowLoading}
+                type="button"
+              >
+                {followStatus.isFollowing ? "Following" : "Follow"}
+              </button>
+            )}
           </div>
         )}
         {posts?.map((item, index) => (

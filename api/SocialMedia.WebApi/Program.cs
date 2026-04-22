@@ -30,6 +30,7 @@ using SocialMedia.WebApi.Hubs;
 using StackExchange.Redis;
 using SocialMedia.WebApi;
 using SocialMedia.Application.Chat;
+using SocialMedia.Application.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -151,6 +152,8 @@ builder.Services.AddScoped<IStorageService, StorageService>();
 builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IUserFollowRepository, UserFollowRepository>();
+builder.Services.AddScoped<IUserFollowService, UserFollowService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 

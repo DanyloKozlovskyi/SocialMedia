@@ -16,4 +16,10 @@ interface JwtPayload {
   // iat?: number;
 }
 
-export type { UpdateUser, User, JwtPayload };
+interface FollowStatus {
+  isFollowing: boolean;
+  followersCount: number;
+  followingCount: number;
+}
+
+export type { UpdateUser, User, JwtPayload, FollowStatus };
