@@ -1,6 +1,12 @@
 "use client";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { getPersonalInfo, getUserId } from "@entities/user";
+import { useRouter } from "next/navigation";
+import {
+  getPersonalInfo,
+  getUserId,
+  getFollowStatus,
+  FollowStatus,
+} from "@entities/user";
 import { EditProfileButton } from "@features/edit-profile";
 import { UserLogo } from "@core-components/user-logo";
 import PageHeader from "@shared/ui/page-header";
@@ -14,6 +20,7 @@ import { useAccountStore } from "./useAccountStore";
 import classes from "./account.module.scss";
 
 const Account = () => {
+  const router = useRouter();
   const {
     posts,
     scrollY,
@@ -37,6 +44,7 @@ const Account = () => {
   } = useAccountStore();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [followStatus, setFollowStatus] = useState<FollowStatus | null>(null);
   const observer = useRef<IntersectionObserver | null>(null);
 
   const pageSize = 5;
@@ -63,6 +71,15 @@ const Account = () => {
       fetchInfo();
     }
   }, [logoKey, name, description, setLogoKey, setName, setDescription]);
+
+  useEffect(() => {
+    const loadFollowStatus = async () => {
+      if (!userId) return;
+      const status = await getFollowStatus(userId);
+      setFollowStatus(status);
+    };
+    loadFollowStatus();
+  }, [userId]);
 
   const loadMore = useCallback(async () => {
     if (isLoading || !hasMore || !userId) return;
@@ -142,6 +159,22 @@ const Account = () => {
           <UserLogo className={classes.userLogo} logoKey={logoKey} />
           <div className={classes.userName}>{name}</div>
           <div className={classes.description}>{description}</div>
+          {followStatus && (
+            <div className={classes.followStats}>
+              <div
+                className={classes.statLink}
+                onClick={() => router.push(`/details/${userId}/followers`)}
+              >
+                <strong>{followStatus.followersCount}</strong> Followers
+              </div>
+              <div
+                className={classes.statLink}
+                onClick={() => router.push(`/details/${userId}/following`)}
+              >
+                <strong>{followStatus.followingCount}</strong> Following
+              </div>
+            </div>
+          )}
           <EditProfileButton
             logoKey={logoKey ?? ""}
             description={description}
