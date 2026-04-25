@@ -28,18 +28,90 @@ const filterUsers = async (
 };
 
 const followUser = async (targetUserId: string): Promise<string> => {
-  const response = await api.post(`${ENDPOINTS.ACCOUNT}/Follow/${targetUserId}`);
+  const response = await api.post(
+    `${ENDPOINTS.ACCOUNT}/Follow/${targetUserId}`,
+  );
   return response?.data;
 };
 
 const unfollowUser = async (targetUserId: string): Promise<string> => {
-  const response = await api.delete(`${ENDPOINTS.ACCOUNT}/Unfollow/${targetUserId}`);
+  const response = await api.delete(
+    `${ENDPOINTS.ACCOUNT}/Unfollow/${targetUserId}`,
+  );
   return response?.data;
 };
 
 const getFollowStatus = async (targetUserId: string): Promise<FollowStatus> => {
-  const response = await api.get(`${ENDPOINTS.ACCOUNT}/GetFollowStatus/${targetUserId}`);
+  const response = await api.get(
+    `${ENDPOINTS.ACCOUNT}/GetFollowStatus/${targetUserId}`,
+  );
   return response?.data;
 };
 
-export { getPersonalInfo, getUserInfo, editProfile, filterUsers, followUser, unfollowUser, getFollowStatus };
+const getFollowers = async (
+  userId: string,
+  page: number,
+  pageSize: number,
+): Promise<Array<User>> => {
+  const response = await api.get(
+    `${ENDPOINTS.ACCOUNT}/GetFollowers/${userId}?page=${page}&pageSize=${pageSize}`,
+  );
+  return (
+    response?.data?.map(
+      (f: {
+        userId: string;
+        userName: string;
+        name: string;
+        logoKey: string;
+        logoContentType: string;
+      }) => ({
+        id: f.userId,
+        userName: f.userName,
+        name: f.name,
+        logoKey: f.logoKey,
+        logoContentType: f.logoContentType,
+        description: null,
+      }),
+    ) ?? []
+  );
+};
+
+const getFollowing = async (
+  userId: string,
+  page: number,
+  pageSize: number,
+): Promise<Array<User>> => {
+  const response = await api.get(
+    `${ENDPOINTS.ACCOUNT}/GetFollowing/${userId}?page=${page}&pageSize=${pageSize}`,
+  );
+  return (
+    response?.data?.map(
+      (f: {
+        userId: string;
+        userName: string;
+        name: string;
+        logoKey: string;
+        logoContentType: string;
+      }) => ({
+        id: f.userId,
+        userName: f.userName,
+        name: f.name,
+        logoKey: f.logoKey,
+        logoContentType: f.logoContentType,
+        description: null,
+      }),
+    ) ?? []
+  );
+};
+
+export {
+  getPersonalInfo,
+  getUserInfo,
+  editProfile,
+  filterUsers,
+  followUser,
+  unfollowUser,
+  getFollowStatus,
+  getFollowers,
+  getFollowing,
+};

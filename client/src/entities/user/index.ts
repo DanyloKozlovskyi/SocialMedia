@@ -6,6 +6,8 @@ import {
   followUser,
   unfollowUser,
   getFollowStatus,
+  getFollowers,
+  getFollowing,
 } from "./apis";
 export {
   getPersonalInfo,
@@ -15,6 +17,8 @@ export {
   followUser,
   unfollowUser,
   getFollowStatus,
+  getFollowers,
+  getFollowing,
 };
 
 import { getUserId } from "./helpers";

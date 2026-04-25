@@ -38,7 +38,7 @@ export default function UserCard({ user }: Props) {
 
   const goToUserPosts = (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
-    router.push(`user-posts?id=${userId}`);
+    router.push(`/user-posts?id=${userId}`);
   };
 
   const handleMessage = async (e: React.MouseEvent) => {

@@ -52,7 +52,7 @@ const SearchComponent = () => {
     userId: string
   ) => {
     e.stopPropagation();
-    router.push(`user-posts?id=${userId}`);
+    router.push(`/user-posts?id=${userId}`);
   };
 
   const handleKeyDown = async (e: KeyboardEvent<HTMLInputElement>) => {

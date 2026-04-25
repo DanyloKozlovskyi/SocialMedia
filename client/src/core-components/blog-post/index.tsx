@@ -43,7 +43,7 @@ const BlogPost = ({
 
   const goToUserPosts = (e: React.MouseEvent) => {
     e.stopPropagation();
-    router.push(`user-posts?id=${userId}`);
+    router.push(`/user-posts?id=${userId}`);
   };
 
   return (

@@ -6,7 +6,7 @@ import {
   useLayoutEffect,
   useState,
 } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import SeparatorLayout from "../layout/separator-layout";
 import {
   getUserInfo,
@@ -28,6 +28,7 @@ import classes from "./user-posts.module.scss";
 
 const UserPosts = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const id = searchParams.get("id") ?? "";
 
   const [followStatus, setFollowStatus] = useState<FollowStatus | null>(null);
@@ -195,12 +196,18 @@ const UserPosts = () => {
             <div className={classes.description}>{description}</div>
             {followStatus && (
               <div className={classes.followStats}>
-                <span>
+                <div
+                  className={classes.statLink}
+                  onClick={() => router.push(`/details/${id}/followers`)}
+                >
                   <strong>{followStatus.followersCount}</strong> Followers
-                </span>
-                <span>
+                </div>
+                <div
+                  className={classes.statLink}
+                  onClick={() => router.push(`/details/${id}/following`)}
+                >
                   <strong>{followStatus.followingCount}</strong> Following
-                </span>
+                </div>
               </div>
             )}
             {!isCurrentUser && followStatus && (

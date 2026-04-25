@@ -45,6 +45,15 @@
   }
 }
 
+.statLink {
+  cursor: pointer;
+  transition: color 0.2s;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .followButton {
   margin-top: 16px;
   background-color: #1d9bf0;
