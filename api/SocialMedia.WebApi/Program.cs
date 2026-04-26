@@ -129,11 +129,15 @@ builder.Services.AddSwaggerGen(options =>
 	options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo() { Title = "Social Media WebApi", Version = "1.0" });
 });
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Value?
+	.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+	?? ["http://localhost:3000", "http://localhost:8000"];
+
 builder.Services.AddCors(options =>
 {
 	options.AddDefaultPolicy(policyBuilder =>
 	{
-		policyBuilder.WithOrigins("http://localhost:3000", "http://localhost:8000")
+		policyBuilder.WithOrigins(allowedOrigins)
 		.AllowAnyHeader()
 		.AllowAnyMethod()
 		.AllowCredentials();
