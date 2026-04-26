@@ -13,5 +13,6 @@ public interface IUserFollowRepository
 	Task<int> GetFollowingCount(Guid userId);
 	Task<IEnumerable<FollowResponseDto>> GetFollowers(Guid userId, int page, int pageSize);
 	Task<IEnumerable<FollowResponseDto>> GetFollowing(Guid userId, int page, int pageSize);
+	Task<HashSet<Guid>> GetFollowingIds(Guid userId);
 	Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

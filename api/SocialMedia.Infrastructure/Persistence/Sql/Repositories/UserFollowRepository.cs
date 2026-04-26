@@ -95,6 +95,17 @@ public class UserFollowRepository : IUserFollowRepository
 			.ConfigureAwait(false);
 	}
 
+	public async Task<HashSet<Guid>> GetFollowingIds(Guid userId)
+	{
+		var ids = await _dbContext.UserFollows
+			.AsNoTracking()
+			.Where(f => f.FollowerId == userId)
+			.Select(f => f.FollowingId)
+			.ToListAsync()
+			.ConfigureAwait(false);
+		return ids.ToHashSet();
+	}
+
 	public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
 	{
 		return _dbContext.SaveChangesAsync(cancellationToken);
