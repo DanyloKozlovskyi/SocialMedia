@@ -1,7 +1,10 @@
 "use client";
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import RightToolbar from "../right-toolbar";
 import LeftToolbar from "../left-toolbar";
+import { GlobalChatWidget } from "@widgets/chat";
+import { getCookie } from "@shared/api";
+import { getUserId } from "@entities/user/helpers";
 import classes from "./main-layout.module.scss";
 
 interface Props {
@@ -9,6 +12,24 @@ interface Props {
 }
 
 const MainLayout = ({ children }: Props) => {
+  const [token, setToken] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
+
+  useEffect(() => {
+    const loadAuthData = async () => {
+      const accessToken = getCookie("access_token");
+      if (accessToken) {
+        const tokenValue = accessToken.split(" ")[1];
+        setToken(tokenValue);
+
+        const id = await getUserId();
+        setUserId(id);
+      }
+    };
+
+    loadAuthData();
+  }, []);
+
   return (
     <div>
       <main className={classes.layout}>
@@ -20,6 +41,9 @@ const MainLayout = ({ children }: Props) => {
           <RightToolbar />
         </div>
       </main>
+      {token && userId && (
+        <GlobalChatWidget token={token} currentUserId={userId} />
+      )}
     </div>
   );
 };

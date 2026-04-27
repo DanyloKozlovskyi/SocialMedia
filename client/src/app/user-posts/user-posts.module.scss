@@ -13,21 +13,6 @@
   position: relative;
 }
 
-.userName {
-  margin-top: 20px;
-  font-size: 20px;
-}
-
-.description {
-  margin-top: 20px;
-}
-
-.accountHeader {
-  margin-bottom: 10px;
-  margin-left: 10%;
-  position: relative;
-}
-
 .userLogo {
   padding-top: 30px;
 }
@@ -48,6 +33,58 @@
   padding-bottom: 100px;
 }
 
-.userLogo {
-  padding-top: 30px;
+.followStats {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #536471;
+
+  strong {
+    color: #0f1419;
+  }
+}
+
+.statLink {
+  cursor: pointer;
+  transition: color 0.2s;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.followButton {
+  margin-top: 16px;
+  background-color: #1d9bf0;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 120px;
+
+  &:hover {
+    background-color: #1a8cd8;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.following {
+    background-color: transparent;
+    color: #0f1419;
+    border: 1px solid #cfd9de;
+
+    &:hover {
+      border-color: #f4212e;
+      color: #f4212e;
+      background-color: rgba(244, 33, 46, 0.1);
+    }
+  }
 }

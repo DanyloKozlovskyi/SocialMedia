@@ -1,4 +1,5 @@
 const setCookie = (name: string, value: string, days = 1) => {
+  if (typeof document === "undefined") return;
   let expires = "";
   if (days) {
     const date = new Date();
@@ -9,6 +10,7 @@ const setCookie = (name: string, value: string, days = 1) => {
 };
 
 const getCookie = (name: string) => {
+  if (typeof document === "undefined") return null;
   const currentCookie = document.cookie.split(";");
   const cookieValue = currentCookie
     .find((cookie) => name === cookie.split("=")[0].trim())

@@ -5,6 +5,8 @@ public class PostData
 {
 	[NoColumn]
 	public Guid Id { get; set; }
+	[NoColumn]
+	public Guid UserId { get; set; }
 	public string Description { get; set; }
 	public int Likes { get; set; }
 	public int Comments { get; set; }

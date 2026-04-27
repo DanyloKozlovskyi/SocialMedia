@@ -1,0 +1,140 @@
+.openButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+  width: 100%;
+  margin-bottom: 16px;
+
+  &:hover {
+    background: #1565c0;
+  }
+
+  svg {
+    font-size: 20px;
+  }
+}
+
+.searchContainer {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #e0e0e0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+
+  &:hover {
+    color: #333;
+  }
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 8px;
+  border-bottom: 1px solid #e0e0e0;
+
+  .searchIcon {
+    color: #666;
+    font-size: 20px;
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    padding: 4px 0;
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+}
+
+.resultsList {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.userItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .userInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .userName {
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .userDesc {
+      font-size: 12px;
+      color: #666;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.loading,
+.noResults,
+.placeholder {
+  padding: 24px 16px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}

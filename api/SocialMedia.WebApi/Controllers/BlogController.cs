@@ -9,6 +9,7 @@ namespace SocialMedia.WebApi.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
+	[Authorize]
 	public class BlogController : ControllerBase
 	{
 		private readonly IBlogService blogPostService;
@@ -25,7 +26,6 @@ namespace SocialMedia.WebApi.Controllers
 		}
 
 		[HttpGet("[action]")]
-		[AllowAnonymous]
 		public async Task<IActionResult> All(int page = 1, int pageSize = 30)
 		{
 			var userId = GetUserId();
@@ -47,7 +47,6 @@ namespace SocialMedia.WebApi.Controllers
 			return Ok(blog);
 		}
 		[HttpGet("[action]/{id}")]
-		[AllowAnonymous]
 		public async Task<IActionResult> GetById(Guid id)
 		{
 			var userId = GetUserId();
@@ -56,7 +55,6 @@ namespace SocialMedia.WebApi.Controllers
 			return Ok(blog);
 		}
 		[HttpGet("[action]/{parentId}")]
-		[AllowAnonymous]
 		public async Task<IActionResult> GetByParentId(Guid parentId, int page = 1, int pageSize = 30)
 		{
 			var userId = GetUserId();
@@ -73,7 +71,6 @@ namespace SocialMedia.WebApi.Controllers
 			}
 		}
 		[HttpGet("[action]")]
-		[AllowAnonymous]
 		public async Task<IActionResult> Filter([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 30)
 		{
 			if (string.IsNullOrWhiteSpace(query))
@@ -86,7 +83,6 @@ namespace SocialMedia.WebApi.Controllers
 		}
 
 		[HttpGet("[action]/{id}")]
-		[AllowAnonymous]
 		public async Task<IActionResult> GetParents(Guid id)
 		{
 			var userId = GetUserId();
@@ -103,7 +99,6 @@ namespace SocialMedia.WebApi.Controllers
 		}
 
 		[HttpGet("[action]/{id}")]
-		[AllowAnonymous]
 		public async Task<IActionResult> GetByUserId(Guid id, int page = 1, int pageSize = 30)
 		{
 			var userRequestId = GetUserId();
@@ -112,14 +107,12 @@ namespace SocialMedia.WebApi.Controllers
 			return Ok(blogs);
 		}
 		[HttpPut("{id}/[action]")]
-		[Authorize]
 		public async Task<IActionResult> SetLike(Guid id, [FromBody] Guid userId)
 		{
 			var likes = await blogPostService.SetLike(id, userId);
 			return Ok(likes);
 		}
 		[HttpGet("{id}/[action]")]
-		[Authorize]
 		public async Task<IActionResult> GetLike(Guid id)
 		{
 			var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -132,14 +125,12 @@ namespace SocialMedia.WebApi.Controllers
 			return Ok(like);
 		}
 		[HttpGet("{id}/[action]")]
-		[Authorize]
 		public async Task<IActionResult> GetLikes(Guid id)
 		{
 			var likes = await blogPostService.GetLikes(id);
 			return Ok(likes);
 		}
 		[HttpPost("user/{userId}/[action]")]
-		[Authorize]
 		public async Task<IActionResult> GetUserLikes([FromRoute] Guid userId, [FromBody] PostsRequestModel posts)
 		{
 			var likes = await blogPostService.GetUserLikes(userId, posts);

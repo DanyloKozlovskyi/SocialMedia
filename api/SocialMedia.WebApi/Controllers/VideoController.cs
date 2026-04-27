@@ -9,6 +9,7 @@ namespace SocialMedia.WebApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class VideoController : ControllerBase
 {
 	private readonly IStorageService _storageService;
@@ -23,7 +24,6 @@ public class VideoController : ControllerBase
 	}
 
 	[HttpPost("start-upload")]
-	[Authorize]
 	public IActionResult StartUpload([FromBody] StartUploadRequest request)
 	{
 		if (request == null)
@@ -56,7 +56,6 @@ public class VideoController : ControllerBase
 	}
 
 	[HttpPost("complete-upload")]
-	[Authorize]
 	public IActionResult CompleteUpload([FromBody] CompleteUploadRequest request)
 	{
 		if (request == null)
@@ -76,7 +75,6 @@ public class VideoController : ControllerBase
 	}
 
 	[HttpGet("download-url")]
-	[AllowAnonymous]
 	public IActionResult GetDownloadUrl([FromQuery] string storageKey)
 	{
 		if (string.IsNullOrWhiteSpace(storageKey))

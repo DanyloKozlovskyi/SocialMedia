@@ -49,7 +49,7 @@ const PostSearch = ({ className, query, onComment }: PostSearchProps) => {
         const result = await filterPosts(
           normalizedQuery,
           loadNext ? page : 1,
-          pageSize
+          pageSize,
         );
         if (!loadNext) {
           setPosts(result, normalizedQuery);
@@ -67,11 +67,17 @@ const PostSearch = ({ className, query, onComment }: PostSearchProps) => {
         setLoading(false);
       }
     },
-    [normalizedQuery, page, hasMore, isLoading]
+    [normalizedQuery, page, hasMore, isLoading],
   );
 
   useLayoutEffect(() => {
-    if (normalizedQuery !== lastQuery || !normalizedQuery) {
+    if (!normalizedQuery) {
+      clearPosts();
+      setHasMore(false);
+      setPage(1);
+      return;
+    }
+    if (normalizedQuery !== lastQuery) {
       clearPosts();
       setHasMore(false);
       setPage(1);
@@ -102,7 +108,7 @@ const PostSearch = ({ className, query, onComment }: PostSearchProps) => {
       });
       if (node) observer.current.observe(node);
     },
-    [isLoading, hasMore, loadPosts]
+    [isLoading, hasMore, loadPosts],
   );
 
   return (

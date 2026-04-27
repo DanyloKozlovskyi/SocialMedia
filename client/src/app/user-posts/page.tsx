@@ -1,10 +1,23 @@
 "use client";
-import { useEffect, useRef, useCallback, useLayoutEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import {
+  useEffect,
+  useRef,
+  useCallback,
+  useLayoutEffect,
+  useState,
+} from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import SeparatorLayout from "../layout/separator-layout";
-import { getUserInfo } from "@entities/user";
+import {
+  getUserInfo,
+  getUserId,
+  followUser,
+  unfollowUser,
+  getFollowStatus,
+  FollowStatus,
+} from "@entities/user";
 import { UserLogo } from "@core-components/user-logo";
-import { ArrowBack } from "@shared/ui/arrow-back";
+import PageHeader from "@shared/ui/page-header";
 import Separator from "@shared/ui/separator";
 import BlogPost from "@core-components/blog-post";
 import Loader from "@shared/ui/loader";
@@ -15,29 +28,34 @@ import classes from "./user-posts.module.scss";
 
 const UserPosts = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const id = searchParams.get("id") ?? "";
+
+  const [followStatus, setFollowStatus] = useState<FollowStatus | null>(null);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [isCurrentUser, setIsCurrentUser] = useState(false);
 
   const isLoading = useUserPostsStore((state) => state.isLoading);
   const posts = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.posts || null
+    (state) => state.stack[state.currentIndex]?.posts || null,
   );
   const logoKey = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.logoKey || ""
+    (state) => state.stack[state.currentIndex]?.logoKey || "",
   );
   const userId = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.userId || ""
+    (state) => state.stack[state.currentIndex]?.userId || "",
   );
   const name = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.name || ""
+    (state) => state.stack[state.currentIndex]?.name || "",
   );
   const description = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.description || ""
+    (state) => state.stack[state.currentIndex]?.description || "",
   );
   const postsPage = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.postsPage || 1
+    (state) => state.stack[state.currentIndex]?.postsPage || 1,
   );
   const postsHasMore = useUserPostsStore(
-    (state) => state.stack[state.currentIndex]?.postsHasMore
+    (state) => state.stack[state.currentIndex]?.postsHasMore,
   );
 
   const {
@@ -106,6 +124,45 @@ const UserPosts = () => {
     return () => updateScrollY(window.scrollY);
   }, []);
 
+  useEffect(() => {
+    const loadFollowStatus = async () => {
+      if (!id) return;
+      const currentUserId = await getUserId();
+      setIsCurrentUser(currentUserId === id);
+      if (currentUserId && currentUserId !== id) {
+        const status = await getFollowStatus(id);
+        setFollowStatus(status);
+      }
+    };
+    loadFollowStatus();
+  }, [id]);
+
+  const handleFollow = async () => {
+    if (isFollowLoading || !followStatus) return;
+    setIsFollowLoading(true);
+    try {
+      if (followStatus.isFollowing) {
+        await unfollowUser(id);
+        setFollowStatus({
+          ...followStatus,
+          isFollowing: false,
+          followersCount: followStatus.followersCount - 1,
+        });
+      } else {
+        await followUser(id);
+        setFollowStatus({
+          ...followStatus,
+          isFollowing: true,
+          followersCount: followStatus.followersCount + 1,
+        });
+      }
+    } catch (error) {
+      console.error("Follow action failed:", error);
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
+
   const loadMore = useCallback(async () => {
     if (!postsHasMore || isLoading) return;
     setIsLoading(true);
@@ -125,18 +182,44 @@ const UserPosts = () => {
       });
       if (node) observer.current.observe(node);
     },
-    [isLoading, postsHasMore, loadMore]
+    [isLoading, postsHasMore, loadMore],
   );
 
   return (
     <SeparatorLayout>
       <div style={{ height: "100%" }}>
-        <ArrowBack onBack={() => popView()} />
+        <PageHeader title="Posts" onBack={() => popView()} />
         {logoKey != "" && (
           <div className={classes.accountHeader}>
             <UserLogo className={classes.userLogo} logoKey={logoKey} />
             <div className={classes.userName}>{name}</div>
             <div className={classes.description}>{description}</div>
+            {followStatus && (
+              <div className={classes.followStats}>
+                <div
+                  className={classes.statLink}
+                  onClick={() => router.push(`/details/${id}/followers`)}
+                >
+                  <strong>{followStatus.followersCount}</strong> Followers
+                </div>
+                <div
+                  className={classes.statLink}
+                  onClick={() => router.push(`/details/${id}/following`)}
+                >
+                  <strong>{followStatus.followingCount}</strong> Following
+                </div>
+              </div>
+            )}
+            {!isCurrentUser && followStatus && (
+              <button
+                className={`${classes.followButton} ${followStatus.isFollowing ? classes.following : ""}`}
+                onClick={handleFollow}
+                disabled={isFollowLoading}
+                type="button"
+              >
+                {followStatus.isFollowing ? "Following" : "Follow"}
+              </button>
+            )}
           </div>
         )}
         {posts?.map((item, index) => (

@@ -1,3 +1,54 @@
 .postButton {
   justify-self: flex-end;
 }
+
+.toolbar {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 8px;
+  height: fit-content;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  transition: background-color 0.2s;
+  width: 100%;
+  text-align: left;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+
+  &.active {
+    background-color: #e3f2fd;
+    color: #0084ff;
+    font-weight: 600;
+  }
+
+  span {
+    flex: 1;
+  }
+
+  svg {
+    font-size: 24px;
+  }
+}
+
+.postButtonWrapper {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}

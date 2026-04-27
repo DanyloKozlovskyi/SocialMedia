@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SocialMedia.Application;
@@ -25,7 +26,11 @@ using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Comments;
 using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Likes;
 using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Roles;
 using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Users;
+using SocialMedia.WebApi.Hubs;
 using StackExchange.Redis;
+using SocialMedia.WebApi;
+using SocialMedia.Application.Chat;
+using SocialMedia.Application.Recommendation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,12 +47,14 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
 	{
 		ServiceURL = $"https://{accountId}.r2.cloudflarestorage.com",
 		ForcePathStyle = true,
-		AuthenticationRegion = "auto"   // R2 doesn�t use AWS regions
+		AuthenticationRegion = "auto"   
 	};
 
 	var creds = new BasicAWSCredentials(accessKey, secretKey);
 	return new AmazonS3Client(creds, config);
 });
+
+builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -59,6 +66,7 @@ builder.Services.AddControllers(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 builder.Services.AddDbContext<SocialMediaDbContext>(options =>
 {
 	options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), opt => opt.CommandTimeout(60).UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)).EnableSensitiveDataLogging();
@@ -90,6 +98,23 @@ builder.Services.AddAuthentication(options =>
 		ValidateIssuerSigningKey = true,
 		IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
 	};
+
+	options.Events = new JwtBearerEvents
+	{
+		OnMessageReceived = context =>
+		{
+			var accessToken = context.Request.Query["access_token"];
+
+			// If the request is for our hub read the token out of the query string
+			var path = context.HttpContext.Request.Path;
+			if (!string.IsNullOrEmpty(accessToken) &&
+				(path.StartsWithSegments("/api/hubs/chat")))
+			{
+				context.Token = accessToken;
+			}
+			return Task.CompletedTask;
+		}
+	};
 });
 
 builder.Services.AddScoped<BlogBackfillService>();
@@ -104,13 +129,18 @@ builder.Services.AddSwaggerGen(options =>
 	options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo() { Title = "Social Media WebApi", Version = "1.0" });
 });
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Value?
+	.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+	?? ["http://localhost:3000", "http://localhost:8000"];
+
 builder.Services.AddCors(options =>
 {
 	options.AddDefaultPolicy(policyBuilder =>
 	{
-		policyBuilder.WithOrigins("http://localhost:3000", "http://localhost:8000")
+		policyBuilder.WithOrigins(allowedOrigins)
 		.AllowAnyHeader()
-		.AllowAnyMethod();
+		.AllowAnyMethod()
+		.AllowCredentials();
 	});
 });
 
@@ -123,6 +153,19 @@ builder.Services.AddScoped<IImageRepository, R2ImageRepository>();
 builder.Services.AddScoped<IUploadUrlFactory, UploadUrlFactory>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IStorageService, StorageService>();
+builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IUserFollowRepository, UserFollowRepository>();
+builder.Services.AddScoped<IUserFollowService, UserFollowService>();
+builder.Services.AddScoped<IImpressionTracker, ImpressionTracker>();
+
+builder.Services.AddScoped<SubscriptionGenerator>();
+builder.Services.AddScoped<NlpGenerator>();
+builder.Services.AddScoped<TrendingGenerator>();
+builder.Services.AddScoped<ExplorationGenerator>();
+builder.Services.AddScoped<CollaborativeGenerator>();
+builder.Services.AddScoped<IFeedMixer, FeedMixer>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -182,6 +225,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/api/hubs/chat");
 
 if (app.Environment.IsDevelopment())
 {

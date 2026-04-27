@@ -1,7 +1,6 @@
 .container {
   background: #fff;
-  padding: 12px 16px 0;
-  border-bottom: 1px solid #e6e6e6;
+  padding: 0;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -11,6 +10,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e6e6e6;
 }
 
 .backButton {
@@ -18,52 +19,81 @@
   border: none;
   font-size: 20px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .searchBox {
   flex: 1;
   display: flex;
   align-items: center;
-  background-color: #f0f2f5;
+  background-color: #eff3f4;
   border-radius: 9999px;
-  padding: 8px 12px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+
+  &:focus-within {
+    background-color: #fff;
+    border-color: #1d9bf0;
+
+    .searchIcon {
+      svg {
+        fill: #1d9bf0;
+      }
+    }
+  }
 }
 
 .searchIcon {
-  margin-right: 8px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+
+  svg {
+    fill: #536471;
+  }
 }
 
 .input {
   border: none;
   outline: none;
   background: transparent;
-  font-size: 14px;
+  font-size: 15px;
   flex: 1;
+  color: #0f1419;
+
+  &::placeholder {
+    color: #536471;
+  }
 }
 
 .tabs {
   display: flex;
-  margin-top: 12px;
   border-bottom: 1px solid #e6e6e6;
 }
 
 .tab {
   flex: 1;
-  padding: 10px 0;
+  padding: 16px 0;
   text-align: center;
   font-weight: 500;
-  color: #888;
+  font-size: 15px;
+  color: #536471;
   cursor: pointer;
+  border: none;
+  background: none;
   border-bottom: 2px solid transparent;
-  transition: background-color 0.3s ease-in-out;
-  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+
   &:hover {
     background: var(--light-gray);
   }
 
   &.active {
-    color: #000;
-    border-bottom: 2px solid #1d9bf0;
-    font-weight: 600;
+    color: #0f1419;
+    border-bottom: 4px solid #1d9bf0;
+    font-weight: 700;
   }
 }

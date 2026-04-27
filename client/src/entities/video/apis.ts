@@ -1,5 +1,4 @@
 import api, { ENDPOINTS } from "@shared/api";
-import axios from "axios";
 import { StartUploadResponse, CompleteUploadResponse } from "./interfaces";
 
 const MAX_FILE_SIZE = 30 * 1024 * 1024;
@@ -36,7 +35,7 @@ async function uploadVideoToR2(
   uploadUrl: string,
   contentType: string,
 ): Promise<void> {
-  await axios.put(uploadUrl, file, {
+  await api.put(uploadUrl, file, {
     headers: { "Content-Type": contentType },
   });
 }

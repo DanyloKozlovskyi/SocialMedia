@@ -11,7 +11,7 @@ body {
 }
 
 .left {
-  flex: 2;
+  flex: 1;
   padding: 20px;
 }
 
@@ -22,8 +22,7 @@ body {
 }
 
 .right {
-  width: 300px;
+  flex: 1;
   padding: 20px;
-  flex: 2;
-  min-width: 300px;
+  min-width: 200px;
 }

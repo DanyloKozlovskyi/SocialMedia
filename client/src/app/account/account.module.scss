@@ -32,3 +32,24 @@
   margin-top: 48px;
   padding-bottom: 100px;
 }
+
+.followStats {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #536471;
+
+  strong {
+    color: #0f1419;
+  }
+}
+
+.statLink {
+  cursor: pointer;
+  transition: color 0.2s;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

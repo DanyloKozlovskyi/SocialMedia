@@ -1,0 +1,288 @@
+.openButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #10a37f;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+  width: 100%;
+  margin-bottom: 16px;
+
+  &:hover {
+    background: #0d8c6d;
+  }
+
+  svg {
+    font-size: 20px;
+  }
+}
+
+.groupCreation {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #e0e0e0;
+  max-height: 500px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    flex: 1;
+    text-align: center;
+  }
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    color: #333;
+  }
+
+  svg {
+    font-size: 20px;
+  }
+}
+
+.nextButton,
+.createButton {
+  background: none;
+  border: none;
+  color: #1976d2;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 8px;
+
+  &:hover {
+    color: #1565c0;
+  }
+
+  &:disabled {
+    color: #ccc;
+    cursor: not-allowed;
+  }
+}
+
+.selectedChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #e3f2fd;
+  border-radius: 16px;
+  padding: 4px 8px 4px 4px;
+  font-size: 13px;
+
+  .chipAvatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  span {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chipRemove {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      color: #333;
+    }
+  }
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 8px;
+  border-bottom: 1px solid #e0e0e0;
+
+  .searchIcon {
+    color: #666;
+    font-size: 20px;
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    padding: 4px 0;
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+}
+
+.resultsList {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 300px;
+}
+
+.userItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+
+  &.selected {
+    background: #e3f2fd;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .userInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .userName {
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .userDesc {
+      font-size: 12px;
+      color: #666;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .checkIcon {
+    color: #1976d2;
+    font-size: 20px;
+  }
+}
+
+.loading,
+.noResults,
+.placeholder {
+  padding: 24px 16px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.groupNameSection {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+
+  .groupNameInput {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+
+    &:focus {
+      border-color: #1976d2;
+    }
+  }
+}
+
+.selectedSection {
+  padding: 16px;
+  flex: 1;
+  overflow-y: auto;
+
+  h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .selectedList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .selectedUser {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    background: #f5f5f5;
+    border-radius: 8px;
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .userName {
+      font-size: 14px;
+      color: #333;
+    }
+  }
+}
