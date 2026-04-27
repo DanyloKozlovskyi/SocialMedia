@@ -42,7 +42,7 @@ const SearchComponent = () => {
       };
 
       fetchResults();
-    }, searchDelay); // debounce delay in ms
+    }, searchDelay);
 
     return () => clearTimeout(delayDebounce);
   }, [query]);
