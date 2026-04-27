@@ -23,7 +23,7 @@ const SignUpPage = () => {
 
   const handleSubmit = async () => {
     try {
-      const response = await register(account);
+      await register(account);
       router.push("/home");
     } catch (err) {
       console.error("Registration failed", err);
@@ -34,6 +34,7 @@ const SignUpPage = () => {
     <div className={classes.container}>
       <h2 className={classes.title}>Sign Up</h2>
       <Input
+        type="text"
         className={classes.input}
         placeholder="User Name"
         name="userName"
@@ -41,6 +42,7 @@ const SignUpPage = () => {
         onChange={(e) => handleChange(e.target.name, e.target.value)}
       />
       <Input
+        type="email"
         placeholder="Email"
         className={classes.input}
         name="email"
@@ -48,6 +50,7 @@ const SignUpPage = () => {
         onChange={(e) => handleChange(e.target.name, e.target.value)}
       />
       <Input
+        type="tel"
         placeholder="Phone Number"
         className={classes.input}
         name="phoneNumber"

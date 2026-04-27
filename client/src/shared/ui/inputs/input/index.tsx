@@ -1,8 +1,11 @@
 import { ThemeProvider } from "@mui/material/styles";
-import TextField, { TextFieldVariants } from "@mui/material/TextField";
+import TextField, {
+  TextFieldVariants,
+  TextFieldProps,
+} from "@mui/material/TextField";
 import { theme, inputStyles } from "./helpers";
 
-interface Props {
+interface Props extends Omit<TextFieldProps, "variant"> {
   type: string;
   variant?: TextFieldVariants;
   sx?: React.CSSProperties;

@@ -5,7 +5,7 @@ interface BlobLogoProps {
   className?: string;
   logoKey: string | null;
   size?: number;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 export const BlobLogo: React.FC<BlobLogoProps> = (props) => {

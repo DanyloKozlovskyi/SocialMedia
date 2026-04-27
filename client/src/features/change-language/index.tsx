@@ -30,7 +30,7 @@ export const LanguageSelector: React.FC = () => {
     defaultMessage: "Ukrainian",
   });
 
-  const available = [
+  const available: { code: "en" | "uk"; label: string }[] = [
     { code: "en", label: englishTitle },
     { code: "uk", label: ukrainianTitle },
   ];

@@ -108,9 +108,9 @@ const VideoUploader = ({ onUploadComplete, onError }: VideoUploaderProps) => {
         setUploadProgress(0);
         onUploadComplete?.(videoId);
       }, 500);
-    } catch (err: any) {
+    } catch (err) {
       const errorMessage =
-        err?.response?.data?.error || err?.message || "Failed to upload video";
+        err instanceof Error ? err.message : "Failed to upload video";
       setError(errorMessage);
       onError?.(errorMessage);
       console.error("Upload error:", err);

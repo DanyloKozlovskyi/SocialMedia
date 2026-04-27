@@ -4,6 +4,7 @@ export interface StartUploadResponse {
 }
 
 export interface CompleteUploadResponse {
+  id: string;
   storageKey: string;
   mediaType: string;
   mediaContentType: string;

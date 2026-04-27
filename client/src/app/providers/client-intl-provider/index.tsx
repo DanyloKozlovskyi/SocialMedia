@@ -28,6 +28,7 @@ export const ClientIntlProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <LocaleContext.Provider value={{ locale, switchLocale }}>
+      {/* @ts-expect-error react-intl types incompatible with React 19 */}
       <IntlProvider locale={locale} defaultLocale="en" messages={messages}>
         {children}
       </IntlProvider>

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import Blog from "@api/models/blog";
+import { Blog } from "@entities/blog-post/interfaces";
 
 type PostSearchStore = {
   posts: Blog[];
@@ -25,7 +25,8 @@ export const usePostSearchStore = create<PostSearchStore>((set) => ({
   scrollY: 0,
 
   setPosts: (posts, query) => set({ posts, lastQuery: query }),
-  appendPosts: (posts) => set(state => ({ posts: [...state.posts, ...posts] })),
+  appendPosts: (posts) =>
+    set((state) => ({ posts: [...state.posts, ...posts] })),
   clearPosts: () => set({ posts: [], lastQuery: "", page: 1, hasMore: false }),
   setLastQuery: (query) => set({ lastQuery: query }),
   setPage: (page) => set({ page }),
