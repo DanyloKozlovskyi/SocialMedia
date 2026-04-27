@@ -1,12 +1,12 @@
 import MaterialButton, { ButtonProps } from "@mui/material/Button";
 import classes from "./button.module.scss";
 
-interface Props {
+interface Props extends Omit<ButtonProps, "variant"> {
   disabled?: boolean;
   variant?: ButtonProps["variant"];
   sx?: React.CSSProperties;
   className?: string;
-  children?: string;
+  children?: React.ReactNode;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 

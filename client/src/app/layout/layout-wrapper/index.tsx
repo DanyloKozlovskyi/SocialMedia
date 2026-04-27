@@ -43,7 +43,7 @@ export default function LayoutWrapper({
   return (
     <ClientIntlProvider>
       {isAuthPage ? (
-        <AuthLayout signIn={pathname === "/sign-in"}>{children}</AuthLayout>
+        <AuthLayout>{children}</AuthLayout>
       ) : isErrorPage ? (
         <>{children}</>
       ) : (

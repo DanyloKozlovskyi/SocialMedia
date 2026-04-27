@@ -17,10 +17,9 @@ import classes from "./post-search.module.scss";
 interface PostSearchProps {
   className?: string;
   query: string;
-  onComment: (id: string) => void;
 }
 
-const PostSearch = ({ className, query, onComment }: PostSearchProps) => {
+const PostSearch = ({ className, query }: PostSearchProps) => {
   const normalizedQuery = query.trim().toLowerCase();
   const {
     posts,
@@ -121,11 +120,7 @@ const PostSearch = ({ className, query, onComment }: PostSearchProps) => {
             ref={isLast ? lastPostRef : null}
             style={{ position: "relative" }}
           >
-            <BlogPost
-              className={classes.blogPost}
-              {...post}
-              onComment={onComment}
-            />
+            <BlogPost className={classes.blogPost} {...post} />
             {idx !== posts.length - 1 && <Separator horizontal top="100%" />}
           </div>
         );

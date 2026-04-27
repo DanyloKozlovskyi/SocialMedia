@@ -34,10 +34,6 @@ const Search = () => {
     updateUrl(query, s);
   };
 
-  const handlePeripheralComment = (id: string) => {
-    router.push(`details?id=${id}&comment=${true}`);
-  };
-
   return (
     <SeparatorLayout>
       <SearchHeader
@@ -51,7 +47,7 @@ const Search = () => {
       {section === "users" ? (
         <UserSearch query={query} />
       ) : (
-        <PostSearch query={query} onComment={handlePeripheralComment} />
+        <PostSearch query={query} />
       )}
     </SeparatorLayout>
   );

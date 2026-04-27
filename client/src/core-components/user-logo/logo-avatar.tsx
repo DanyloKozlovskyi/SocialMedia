@@ -5,7 +5,7 @@ interface LogoAvatarProps {
   className?: string;
   src: string;
   size?: number;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   showCameraIcon?: boolean;
 }
 

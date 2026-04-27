@@ -1,15 +1,7 @@
 import SignInIcon from "@assets/auth/sign-in.svg";
-import SignUpIcon from "@assets/auth/sign-up.svg";
 import styles from "./auth-layout.module.scss";
 
-const AuthLayout = ({
-  children,
-  signIn,
-  ...props
-}: {
-  children: React.ReactNode;
-  signIn: boolean;
-}) => {
+const AuthLayout = ({ children, ...props }: { children: React.ReactNode }) => {
   return (
     <div {...props} className={styles.wrapper}>
       <div className={styles.container}>

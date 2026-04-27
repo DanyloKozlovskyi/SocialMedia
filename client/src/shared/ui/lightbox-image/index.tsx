@@ -7,13 +7,13 @@ export default function LightboxImage({
   src,
   alt,
   width = 200,
-  props,
+  ...props
 }: {
   className?: string;
   src: string;
   alt: string;
-  width: number;
-}) {
+  width?: number;
+} & React.ImgHTMLAttributes<HTMLImageElement>) {
   const [isOpen, setOpen] = useState(false);
 
   return (
@@ -32,14 +32,7 @@ export default function LightboxImage({
       />
 
       {isOpen && (
-        <Lightbox
-          src={src}
-          alt={alt}
-          onClose={(e) => {
-            e.stopPropagation();
-            setOpen(false);
-          }}
-        />
+        <Lightbox src={src} alt={alt} onClose={() => setOpen(false)} />
       )}
     </>
   );

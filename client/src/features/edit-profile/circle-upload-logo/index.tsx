@@ -11,7 +11,7 @@ export const UploadLogo = ({
 }: {
   className: string;
   image64: string;
-  ref?: React.RefObject<HTMLInputElement>;
+  ref?: React.RefObject<HTMLInputElement | null>;
   onCancel: () => void;
   onUpload: React.ChangeEventHandler<HTMLInputElement>;
 }) => {
@@ -33,11 +33,7 @@ export const UploadLogo = ({
             style={{ display: "none" }}
           />
         </Button>
-        <Button
-          variant="outlined"
-          onClick={onCancel}
-          disabled={!image64}
-        >
+        <Button variant="outlined" onClick={onCancel} disabled={!image64}>
           Cancel
         </Button>
       </Stack>

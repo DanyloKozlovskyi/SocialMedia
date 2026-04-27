@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import User from "@api/models/user";
+import { User } from "@entities/user";
 
 type UserSearchStore = {
   users: User[];
