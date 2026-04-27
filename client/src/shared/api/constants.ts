@@ -1,4 +1,4 @@
-const ORIGIN = "https://localhost:7265/api";
+const ORIGIN = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const ENDPOINTS = {
   ACCOUNT: "account",
