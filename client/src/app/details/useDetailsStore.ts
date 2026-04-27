@@ -14,7 +14,6 @@ interface DetailsStore {
   stack: PostView[];
   currentIndex: number;
 
-  // loading flags
   isLoadingPost: boolean;
   isLoadingComments: boolean;
 
