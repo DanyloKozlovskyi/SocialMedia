@@ -24,7 +24,7 @@ public class CollaborativeGenerator : ICandidateGenerator
 		await using var context = await _contextFactory.CreateDbContextAsync();
 		var cutoff = DateTime.UtcNow.AddDays(-60);
 
-		var interactions = await context.Blogs
+		var likeInteractions = await context.Blogs
 			.AsNoTracking()
 			.Where(x => x.ParentId == null)
 			.SelectMany(p => p.Likes
@@ -34,16 +34,23 @@ public class CollaborativeGenerator : ICandidateGenerator
 					UserId = l.UserId.GetHashCode(),
 					PostId = p.Id.GetHashCode(),
 					Label = 1.0f
-				})
-				.Concat(p.Comments
-					.Where(c => c.PostedAt >= cutoff)
-					.Select(c => new UserPostInteraction
-					{
-						UserId = c.UserId.GetHashCode(),
-						PostId = p.Id.GetHashCode(),
-						Label = 2.0f
-					})))
+				}))
 			.ToListAsync();
+
+		var commentInteractions = await context.Blogs
+			.AsNoTracking()
+			.Where(x => x.ParentId == null)
+			.SelectMany(p => p.Comments
+				.Where(c => c.PostedAt >= cutoff)
+				.Select(c => new UserPostInteraction
+				{
+					UserId = c.UserId.GetHashCode(),
+					PostId = p.Id.GetHashCode(),
+					Label = 2.0f
+				}))
+			.ToListAsync();
+
+		var interactions = likeInteractions.Concat(commentInteractions).ToList();
 
 		if (interactions.Count < 50)
 			return new List<Candidate>();
