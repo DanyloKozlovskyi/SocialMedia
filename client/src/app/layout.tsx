@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { LayoutWrapper } from "./layout/index";
 import "./globals.css";
@@ -12,6 +13,12 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+export const metadata: Metadata = {
+  verification: {
+    google: "I5K7sfvrr8sichoYFJgeJHtq2voul94qTofpvQt07VQ",
+  },
+};
 
 export default function RootLayout({
   children,
