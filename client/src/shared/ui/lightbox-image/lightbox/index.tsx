@@ -17,15 +17,30 @@ export default function Lightbox({
 
     return () => {
       requestAnimationFrame(() =>
-        document.body.classList.remove(classes.noScroll)
+        document.body.classList.remove(classes.noScroll),
       );
     };
   }, []);
   // render into document.body
   return createPortal(
-    <div className={classes.lightBoxOverlay} onClick={onClose}>
-      <img className={classes.lightBoxFull} src={src} alt={alt} />
+    <div
+      className={classes.lightBoxOverlay}
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        onClose();
+      }}
+    >
+      <img
+        className={classes.lightBoxFull}
+        src={src}
+        alt={alt}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+      />
     </div>,
-    document.body
+    document.body,
   );
 }

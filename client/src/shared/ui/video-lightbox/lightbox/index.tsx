@@ -14,21 +14,31 @@ export default function VideoLightbox({
 
     return () => {
       requestAnimationFrame(() =>
-        document.body.classList.remove(classes.noScroll)
+        document.body.classList.remove(classes.noScroll),
       );
     };
   }, []);
 
   return createPortal(
-    <div className={classes.lightBoxOverlay} onClick={onClose}>
+    <div
+      className={classes.lightBoxOverlay}
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        onClose(e);
+      }}
+    >
       <video
         className={classes.lightBoxFull}
         src={src}
         controls
         autoPlay
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose(e);
+        }}
       />
     </div>,
-    document.body
+    document.body,
   );
 }
