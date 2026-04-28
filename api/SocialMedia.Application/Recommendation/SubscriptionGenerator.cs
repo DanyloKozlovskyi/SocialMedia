@@ -1,33 +1,36 @@
 using Microsoft.EntityFrameworkCore;
-using SocialMedia.Application.BlogPosts;
-using SocialMedia.Application.Identity;
 
 namespace SocialMedia.Application.Recommendation;
 
 public class SubscriptionGenerator : ICandidateGenerator
 {
-	private readonly IBlogRepository _blogRepository;
-	private readonly IUserFollowRepository _userFollowRepository;
+	private readonly IRecommendationDbContextFactory _contextFactory;
 
 	public CandidateSource Source => CandidateSource.Subscription;
 
-	public SubscriptionGenerator(IBlogRepository blogRepository, IUserFollowRepository userFollowRepository)
+	public SubscriptionGenerator(IRecommendationDbContextFactory contextFactory)
 	{
-		_blogRepository = blogRepository;
-		_userFollowRepository = userFollowRepository;
+		_contextFactory = contextFactory;
 	}
 
 	public async Task<List<Candidate>> GetCandidatesAsync(Guid userId, HashSet<Guid> excludeIds, int limit)
 	{
-		var followedUserIds = await _userFollowRepository.GetFollowingIds(userId);
+		await using var context = await _contextFactory.CreateDbContextAsync();
+
+		var followedUserIds = await context.UserFollows
+			.AsNoTracking()
+			.Where(f => f.FollowerId == userId)
+			.Select(f => f.FollowingId)
+			.ToListAsync();
 
 		if (followedUserIds.Count == 0)
 			return new List<Candidate>();
 
 		var recentCutoff = DateTime.UtcNow.AddDays(-14);
 
-		var candidates = await _blogRepository
-			.GetByFilterNoTracking(x =>
+		var candidates = await context.Blogs
+			.AsNoTracking()
+			.Where(x =>
 				x.ParentId == null &&
 				followedUserIds.Contains(x.UserId) &&
 				x.PostedAt >= recentCutoff &&

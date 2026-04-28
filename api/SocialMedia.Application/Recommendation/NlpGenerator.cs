@@ -1,26 +1,27 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.ML;
-using SocialMedia.Application.BlogPosts;
 
 namespace SocialMedia.Application.Recommendation;
 
 public class NlpGenerator : ICandidateGenerator
 {
-	private readonly IBlogRepository _blogRepository;
+	private readonly IRecommendationDbContextFactory _contextFactory;
 
 	public CandidateSource Source => CandidateSource.Nlp;
 
-	public NlpGenerator(IBlogRepository blogRepository)
+	public NlpGenerator(IRecommendationDbContextFactory contextFactory)
 	{
-		_blogRepository = blogRepository;
+		_contextFactory = contextFactory;
 	}
 
 	public async Task<List<Candidate>> GetCandidatesAsync(Guid userId, HashSet<Guid> excludeIds, int limit)
 	{
+		await using var context = await _contextFactory.CreateDbContextAsync();
 		var cutoff = DateTime.UtcNow.AddDays(-60);
 
-		var posts = await _blogRepository
-			.GetByFilterNoTracking(x => x.ParentId == null && !excludeIds.Contains(x.Id))
+		var posts = await context.Blogs
+			.AsNoTracking()
+			.Where(x => x.ParentId == null && !excludeIds.Contains(x.Id))
 			.Select(x => new PostData
 			{
 				Id = x.Id,
@@ -35,8 +36,9 @@ public class NlpGenerator : ICandidateGenerator
 		if (!posts.Any())
 			return new List<Candidate>();
 
-		var userEngagedPosts = await _blogRepository
-			.GetByFilterNoTracking(x => x.ParentId == null &&
+		var userEngagedPosts = await context.Blogs
+			.AsNoTracking()
+			.Where(x => x.ParentId == null &&
 				(x.Likes.Any(l => l.UserId == userId) || x.Comments.Any(c => c.UserId == userId)))
 			.Select(x => new PostData { Description = x.Description })
 			.ToListAsync();

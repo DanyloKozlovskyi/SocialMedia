@@ -1,13 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.ML;
 using Microsoft.ML.Trainers;
-using SocialMedia.Application.BlogPosts;
 
 namespace SocialMedia.Application.Recommendation;
 
 public class CollaborativeGenerator : ICandidateGenerator
 {
-	private readonly IBlogRepository _blogRepository;
+	private readonly IRecommendationDbContextFactory _contextFactory;
 	private static ITransformer? _cachedModel;
 	private static DateTime _modelTrainedAt = DateTime.MinValue;
 	private static readonly object _modelLock = new();
@@ -15,17 +14,19 @@ public class CollaborativeGenerator : ICandidateGenerator
 
 	public CandidateSource Source => CandidateSource.Collaborative;
 
-	public CollaborativeGenerator(IBlogRepository blogRepository)
+	public CollaborativeGenerator(IRecommendationDbContextFactory contextFactory)
 	{
-		_blogRepository = blogRepository;
+		_contextFactory = contextFactory;
 	}
 
 	public async Task<List<Candidate>> GetCandidatesAsync(Guid userId, HashSet<Guid> excludeIds, int limit)
 	{
+		await using var context = await _contextFactory.CreateDbContextAsync();
 		var cutoff = DateTime.UtcNow.AddDays(-60);
 
-		var interactions = await _blogRepository
-			.GetByFilterNoTracking(x => x.ParentId == null)
+		var interactions = await context.Blogs
+			.AsNoTracking()
+			.Where(x => x.ParentId == null)
 			.SelectMany(p => p.Likes
 				.Where(l => l.IsLiked && l.CreatedAt >= cutoff)
 				.Select(l => new UserPostInteraction
@@ -51,8 +52,9 @@ public class CollaborativeGenerator : ICandidateGenerator
 		if (model == null)
 			return new List<Candidate>();
 
-		var candidatePosts = await _blogRepository
-			.GetByFilterNoTracking(x => x.ParentId == null && !excludeIds.Contains(x.Id))
+		var candidatePosts = await context.Blogs
+			.AsNoTracking()
+			.Where(x => x.ParentId == null && !excludeIds.Contains(x.Id))
 			.OrderByDescending(x => x.PostedAt)
 			.Take(limit * 5)
 			.Select(x => new { x.Id, x.UserId })

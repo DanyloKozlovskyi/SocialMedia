@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using SocialMedia.Application.Recommendation;
 using SocialMedia.Domain.Entities;
 using SocialMedia.Domain.Entities.Identity;
 using SocialMedia.Infrastructure.Persistence.Sql.Configurations;
 
 namespace SocialMedia.Infrastructure.Persistence.Sql
 {
-	public class SocialMediaDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
+	public class SocialMediaDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>, IRecommendationDbContext
 	{
 		public DbSet<BlogPost> Blogs { get; set; }
 		public DbSet<Like> Likes { get; set; }
