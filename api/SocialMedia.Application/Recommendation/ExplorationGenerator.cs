@@ -1,25 +1,26 @@
 using Microsoft.EntityFrameworkCore;
-using SocialMedia.Application.BlogPosts;
 
 namespace SocialMedia.Application.Recommendation;
 
 public class ExplorationGenerator : ICandidateGenerator
 {
-	private readonly IBlogRepository _blogRepository;
+	private readonly IRecommendationDbContextFactory _contextFactory;
 
 	public CandidateSource Source => CandidateSource.Exploration;
 
-	public ExplorationGenerator(IBlogRepository blogRepository)
+	public ExplorationGenerator(IRecommendationDbContextFactory contextFactory)
 	{
-		_blogRepository = blogRepository;
+		_contextFactory = contextFactory;
 	}
 
 	public async Task<List<Candidate>> GetCandidatesAsync(Guid userId, HashSet<Guid> excludeIds, int limit)
 	{
+		await using var context = await _contextFactory.CreateDbContextAsync();
 		var recentCutoff = DateTime.UtcNow.AddDays(-7);
 
-		var recentPosts = await _blogRepository
-			.GetByFilterNoTracking(x =>
+		var recentPosts = await context.Blogs
+			.AsNoTracking()
+			.Where(x =>
 				x.ParentId == null &&
 				x.PostedAt >= recentCutoff &&
 				!excludeIds.Contains(x.Id))

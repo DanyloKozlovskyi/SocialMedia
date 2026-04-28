@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SocialMedia.Application;
 using SocialMedia.Application.BlogPosts;
+using SocialMedia.Application.Recommendation;
 using SocialMedia.Application.Identity;
 using SocialMedia.Application.Images;
 using SocialMedia.Application.Videos;
@@ -71,6 +72,12 @@ builder.Services.AddDbContext<SocialMediaDbContext>(options =>
 {
 	options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), opt => opt.CommandTimeout(60).UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)).EnableSensitiveDataLogging();
 });
+builder.Services.AddDbContextFactory<SocialMediaDbContext>(options =>
+{
+	options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), opt => opt.CommandTimeout(60).UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
+}, ServiceLifetime.Scoped);
+builder.Services.AddScoped<IRecommendationDbContextFactory>(sp =>
+	new RecommendationDbContextFactoryAdapter<SocialMediaDbContext>(sp.GetRequiredService<IDbContextFactory<SocialMediaDbContext>>()));
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 {
