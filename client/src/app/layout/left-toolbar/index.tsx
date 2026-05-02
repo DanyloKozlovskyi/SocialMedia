@@ -8,8 +8,10 @@ import SearchIcon from "@mui/icons-material/Search";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import SchoolIcon from "@mui/icons-material/School";
+import LogoutIcon from "@mui/icons-material/Logout";
 import { CreatePostModal } from "@features/create-post";
 import { useUniversityStore } from "@entities/university";
+import { logout, clearTokens } from "@entities/auth";
 import classes from "./left-toolbar.module.scss";
 
 const LeftToolbar = () => {
@@ -40,6 +42,17 @@ const LeftToolbar = () => {
   const handleUniversityClick = () => {
     setUniversityMode(!isUniversityMode);
     router.push("/home");
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+    } catch (e) {
+      console.error("Logout failed on server:", e);
+    } finally {
+      clearTokens();
+      window.location.href = "/sign-in";
+    }
   };
 
   return (
@@ -76,6 +89,16 @@ const LeftToolbar = () => {
         >
           <AddCircleIcon />
           <span>Create Post</span>
+        </button>
+
+        <button
+          className={classes.navButton}
+          onClick={handleSignOut}
+          type="button"
+          style={{ marginTop: "8px", color: "#d32f2f" }}
+        >
+          <LogoutIcon style={{ color: "#d32f2f" }} />
+          <span>Sign Out</span>
         </button>
       </div>
 

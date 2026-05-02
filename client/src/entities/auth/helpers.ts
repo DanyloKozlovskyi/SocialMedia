@@ -6,4 +6,10 @@ const saveTokens = ({ token, refreshToken }: AuthenticationResponse) => {
   setCookie("refresh_token", `Bearer ${refreshToken}`);
 };
 
-export { saveTokens };
+const clearTokens = () => {
+  setCookie("access_token", "", -1);
+  setCookie("refresh_token", "", -1);
+  setCookie("user_email", "", -1);
+};
+
+export { saveTokens, clearTokens };

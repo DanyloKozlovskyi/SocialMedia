@@ -1,8 +1,8 @@
 import { AuthenticationResponse } from "./interfaces";
 export type { AuthenticationResponse };
 
-import { login, register } from "./apis";
-export { login, register };
+import { login, register, logout } from "./apis";
+export { login, register, logout };
 
-import { saveTokens } from "./helpers";
-export { saveTokens };
+import { saveTokens, clearTokens } from "./helpers";
+export { saveTokens, clearTokens };
