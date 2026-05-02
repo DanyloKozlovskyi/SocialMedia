@@ -136,5 +136,17 @@ namespace SocialMedia.WebApi.Controllers
 			var likes = await blogPostService.GetUserLikes(userId, posts);
 			return Ok(likes);
 		}
+
+		[HttpGet("[action]")]
+		public async Task<IActionResult> GetByUniversity([FromQuery] string universityDomain, [FromQuery] string? facultyCode = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 30)
+		{
+			if (string.IsNullOrWhiteSpace(universityDomain))
+				return BadRequest("University domain is required.");
+
+			var userId = GetUserId();
+			var posts = await blogPostService.GetByUniversity(universityDomain, facultyCode, userId, page, pageSize);
+
+			return Ok(posts);
+		}
 	}
 }

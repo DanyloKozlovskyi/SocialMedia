@@ -14,4 +14,5 @@ public interface IBlogService
 	Task<IEnumerable<Like>?> GetUserLikes(Guid? userId, PostsRequestModel posts);
 	Task<int> SetLike(Guid postId, Guid userId);
 	Task<IEnumerable<PostResponseModel>?> GetByParentId(Guid parentId, Guid? userId = null, int page = 1, int pageSize = 30);
+	Task<IEnumerable<PostResponseModel>?> GetByUniversity(string universityDomain, string? facultyCode, Guid? userRequestId = null, int page = 1, int pageSize = 30);
 }

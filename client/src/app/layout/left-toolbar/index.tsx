@@ -7,7 +7,9 @@ import ChatIcon from "@mui/icons-material/Chat";
 import SearchIcon from "@mui/icons-material/Search";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
+import SchoolIcon from "@mui/icons-material/School";
 import { CreatePostModal } from "@features/create-post";
+import { useUniversityStore } from "@entities/university";
 import classes from "./left-toolbar.module.scss";
 
 const LeftToolbar = () => {
@@ -16,6 +18,9 @@ const LeftToolbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const timeout = 1000;
+
+  const { universityDomain, isUniversityMode, setUniversityMode } =
+    useUniversityStore();
 
   const navItems = [
     { icon: <HomeIcon />, label: "Home", path: "/home" },
@@ -32,6 +37,11 @@ const LeftToolbar = () => {
     }, timeout);
   };
 
+  const handleUniversityClick = () => {
+    setUniversityMode(!isUniversityMode);
+    router.push("/home");
+  };
+
   return (
     <div className={classes.toolbar}>
       {navItems.map((item) => (
@@ -45,6 +55,18 @@ const LeftToolbar = () => {
           <span>{item.label}</span>
         </button>
       ))}
+
+      {/* University mode toggle in the toolbar */}
+      {universityDomain && (
+        <button
+          className={`${classes.navButton} ${isUniversityMode ? classes.active : ""}`}
+          onClick={handleUniversityClick}
+          type="button"
+        >
+          <SchoolIcon />
+          <span>University</span>
+        </button>
+      )}
 
       <div className={classes.postButtonWrapper}>
         <button

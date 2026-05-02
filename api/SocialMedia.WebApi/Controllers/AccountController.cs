@@ -310,5 +310,136 @@ namespace SocialMedia.WebApi.Controllers
 			var following = await _userFollowService.GetFollowing(targetUserId, page, pageSize);
 			return Ok(following);
 		}
+
+		[HttpPost("[action]")]
+		[Authorize]
+		public async Task<IActionResult> UpdateUniversityInfo(UpdateUniversityInfoDto dto)
+		{
+			var userId = GetUserId();
+			var user = await _userManager.FindByIdAsync(userId.ToString());
+			if (user == null)
+				return NotFound();
+
+			user.UniversityDomain = dto.UniversityDomain;
+			user.UniversityName = dto.UniversityName;
+			user.FacultyCode = dto.FacultyCode;
+			user.FacultyName = dto.FacultyName;
+			user.Major = dto.Major;
+			user.YearOfStudy = dto.YearOfStudy;
+			user.AcademicRole = dto.AcademicRole;
+			user.IsUniversityVerified = !string.IsNullOrEmpty(dto.UniversityDomain);
+
+			var result = await _userManager.UpdateAsync(user);
+
+			if (!result.Succeeded)
+				return BadRequest(result.Errors);
+
+			return Ok(new
+			{
+				universityDomain = user.UniversityDomain,
+				universityName = user.UniversityName,
+				facultyCode = user.FacultyCode,
+				facultyName = user.FacultyName,
+				major = user.Major,
+				yearOfStudy = user.YearOfStudy,
+				academicRole = user.AcademicRole,
+				isUniversityVerified = user.IsUniversityVerified
+			});
+		}
+
+		[HttpDelete("[action]")]
+		[Authorize]
+		public async Task<IActionResult> ClearUniversityInfo()
+		{
+			var userId = GetUserId();
+			var user = await _userManager.FindByIdAsync(userId.ToString());
+			if (user == null)
+				return NotFound();
+
+			user.UniversityDomain = null;
+			user.UniversityName = null;
+			user.FacultyCode = null;
+			user.FacultyName = null;
+			user.Major = null;
+			user.YearOfStudy = null;
+			user.AcademicRole = null;
+			user.IsUniversityVerified = false;
+
+			var result = await _userManager.UpdateAsync(user);
+
+			if (!result.Succeeded)
+				return BadRequest(result.Errors);
+
+			return Ok("University info cleared");
+		}
+
+		[HttpGet("[action]")]
+		[Authorize]
+		public async Task<IActionResult> GetUniversityPeers([FromQuery] string? universityDomain = null, [FromQuery] string? facultyCode = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+		{
+			var userId = GetUserId();
+			var currentUser = await _userManager.FindByIdAsync(userId.ToString());
+			if (currentUser == null)
+				return NotFound();
+
+			var domain = universityDomain ?? currentUser.UniversityDomain;
+			if (string.IsNullOrEmpty(domain))
+				return BadRequest("No university domain specified");
+
+			var query = _userManager.Users
+				.Where(u => u.UniversityDomain == domain && u.Id != userId);
+
+			if (!string.IsNullOrEmpty(facultyCode))
+				query = query.Where(u => u.FacultyCode == facultyCode);
+
+			var peers = await query
+				.OrderByDescending(u => u.Posts.Count())
+				.Skip((page - 1) * pageSize)
+				.Take(pageSize)
+				.Select(u => new
+				{
+					id = u.Id,
+					name = u.Name,
+					logoKey = u.LogoKey,
+					universityDomain = u.UniversityDomain,
+					universityName = u.UniversityName,
+					facultyCode = u.FacultyCode,
+					facultyName = u.FacultyName,
+					major = u.Major,
+					yearOfStudy = u.YearOfStudy,
+					academicRole = u.AcademicRole
+				})
+				.ToListAsync();
+
+			return Ok(peers);
+		}
+
+		[HttpGet("[action]")]
+		[Authorize]
+		public async Task<IActionResult> GetUniversityStats()
+		{
+			var userId = GetUserId();
+			var currentUser = await _userManager.FindByIdAsync(userId.ToString());
+			if (currentUser == null || string.IsNullOrEmpty(currentUser.UniversityDomain))
+				return Ok(new { universityCount = 0, facultyCount = 0 });
+
+			var universityCount = await _userManager.Users
+				.CountAsync(u => u.UniversityDomain == currentUser.UniversityDomain);
+
+			var facultyCount = !string.IsNullOrEmpty(currentUser.FacultyCode)
+				? await _userManager.Users
+					.CountAsync(u => u.UniversityDomain == currentUser.UniversityDomain && u.FacultyCode == currentUser.FacultyCode)
+				: 0;
+
+			return Ok(new
+			{
+				universityCount,
+				facultyCount,
+				universityDomain = currentUser.UniversityDomain,
+				universityName = currentUser.UniversityName,
+				facultyCode = currentUser.FacultyCode,
+				facultyName = currentUser.FacultyName
+			});
+		}
 	}
 }

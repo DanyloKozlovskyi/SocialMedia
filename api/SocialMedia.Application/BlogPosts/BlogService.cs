@@ -146,4 +146,19 @@ public class BlogService : IBlogService
 		var post = await GetById(postId);
 		return post.LikeCount;
 	}
+
+	public async Task<IEnumerable<PostResponseModel>?> GetByUniversity(string universityDomain, string? facultyCode, Guid? userRequestId = null, int page = 1, int pageSize = 30)
+	{
+		var query = _blogRepository.Get(
+			skip: (page - 1) * pageSize,
+			take: pageSize,
+			whereExpression: x => x.ParentId == null && x.User.UniversityDomain == universityDomain &&
+				(string.IsNullOrEmpty(facultyCode) || x.User.FacultyCode == facultyCode),
+			orderBy: new Dictionary<Expression<Func<BlogPost, object>>, SortDirection>
+			{
+				{ post => post.PostedAt, SortDirection.Descending }
+			});
+
+		return await query.ToPostResponseModelQueryable(userRequestId: userRequestId).ToListAsync();
+	}
 }
