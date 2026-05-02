@@ -12,6 +12,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { CreatePostModal } from "@features/create-post";
 import { useUniversityStore } from "@entities/university";
 import { logout, clearTokens } from "@entities/auth";
+import { wipeAllStores } from "@shared/lib/store-reset";
 import classes from "./left-toolbar.module.scss";
 
 const LeftToolbar = () => {
@@ -52,6 +53,7 @@ const LeftToolbar = () => {
     } finally {
       clearTokens();
       window.location.href = "/sign-in";
+      wipeAllStores();
     }
   };
 
