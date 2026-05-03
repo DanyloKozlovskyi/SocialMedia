@@ -6,4 +6,6 @@ public class UserResponseModel
 	public string? Description { get; set; }
 	public string? LogoKey { get; set; }
 	public string? LogoContentType { get; set; }
+	public string? UniversityDomain { get; set; }
+	public string? FacultyCode { get; set; }
 }

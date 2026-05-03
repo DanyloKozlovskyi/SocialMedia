@@ -1,9 +1,15 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import LightboxImage from "@shared/ui/lightbox-image";
 import VideoPlayer from "@shared/ui/video-player";
 import { Blog } from "@entities/blog-post";
 import { useMedia } from "@entities/media/lib/useMedia";
+import { fetchImageWithFallbacks } from "@entities/image";
+import {
+  getUniversityLogoBasePath,
+  getFacultyLogoBasePath,
+} from "@shared/lib/universities";
 import { UserLogo } from "../user-logo";
 import { IconBar } from "./components";
 import classes from "./blog-post.module.scss";
@@ -35,7 +41,42 @@ const BlogPost = ({
     (mediaType as "image" | "video") || null,
   );
 
-  const { logoKey: userLogoKey, userName, id: userId } = user;
+  const {
+    logoKey: userLogoKey,
+    userName,
+    id: userId,
+    universityDomain,
+    facultyCode,
+  } = user;
+
+  console.log(user);
+
+  const [uniLogoUrl, setUniLogoUrl] = useState<string | null>(null);
+  const [facultyLogoUrl, setFacultyLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!universityDomain) {
+      setUniLogoUrl(null);
+      return;
+    }
+    const basePath = getUniversityLogoBasePath(universityDomain);
+    if (!basePath) return;
+    fetchImageWithFallbacks(basePath, ["png", "svg", "jpg", "jpeg"])
+      .then(setUniLogoUrl)
+      .catch(() => setUniLogoUrl(null));
+  }, [universityDomain]);
+
+  useEffect(() => {
+    if (!universityDomain || !facultyCode) {
+      setFacultyLogoUrl(null);
+      return;
+    }
+    const basePath = getFacultyLogoBasePath(universityDomain, facultyCode);
+    if (!basePath) return;
+    fetchImageWithFallbacks(basePath, ["png", "svg", "jpg", "jpeg"])
+      .then(setFacultyLogoUrl)
+      .catch(() => setFacultyLogoUrl(null));
+  }, [universityDomain, facultyCode]);
 
   const goToDetails = () => {
     router.push(`details?id=${id}`);
@@ -60,9 +101,29 @@ const BlogPost = ({
         />
       </div>
       <div className={classes.contentColumn}>
-        <p className={classes.userName} onClick={goToUserPosts}>
-          {userName}
-        </p>
+        <div className={classes.userHeader}>
+          <p className={classes.userName} onClick={goToUserPosts}>
+            {userName}
+          </p>
+          {(uniLogoUrl || facultyLogoUrl) && (
+            <div className={classes.affiliationLogos}>
+              {uniLogoUrl && (
+                <img
+                  src={uniLogoUrl}
+                  alt="University"
+                  className={classes.affiliationLogo}
+                />
+              )}
+              {facultyLogoUrl && (
+                <img
+                  src={facultyLogoUrl}
+                  alt="Faculty"
+                  className={classes.affiliationLogo}
+                />
+              )}
+            </div>
+          )}
+        </div>
         <div className={classes.blogPostLabel}>{description}</div>
         {mediaType === "video" && mediaSrc ? (
           <VideoPlayer

@@ -21,7 +21,7 @@
 }
 
 .blogPostContainer:hover:has(.blogPostImage:hover) {
-  background-color: initial; 
+  background-color: initial;
 }
 
 .blogPostImage {
@@ -45,15 +45,41 @@
   width: 100%;
 }
 
+.userHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .userName {
   font-weight: 600;
   font-size: 0.875rem;
   color: #1d1d1f;
   cursor: pointer;
   text-align: left;
+  margin: 0;
 
   &:hover {
     text-decoration: underline;
+  }
+}
+
+.affiliationLogos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.affiliationLogo {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  border-radius: 4px;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
   }
 }
 
