@@ -41,9 +41,23 @@ async function saveFileIntoBlob(
   });
 }
 
+async function fetchImageWithFallbacks(basePath: string, extensions: string[]): Promise<string> {
+  let lastError: Error | null = null;
+  for (const ext of extensions) {
+    try {
+      return await fetchImageAsBlobURL(`${basePath}.${ext}`);
+    } catch (e) {
+      lastError = e as Error;
+      // Continue to next extension
+    }
+  }
+  throw lastError || new Error("All fallback extensions failed");
+}
+
 export {
   fetchImageAsBlobURL,
   getUploadUrl,
   saveFileIntoBlob,
   getUploadLogoUrl,
+  fetchImageWithFallbacks,
 };

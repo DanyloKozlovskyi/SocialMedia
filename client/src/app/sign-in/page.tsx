@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 import Input from "@shared/ui/inputs/input";
 import Button from "@shared/ui/buttons/button";
 import { login, saveTokens } from "@entities/auth";
+import { getPersonalInfo } from "@entities/user";
+import { useUniversityStore } from "@entities/university";
 import { setCookie } from "@shared/api";
-import { UniversityOnboardingModal } from "@features/university-onboarding";
-import { getUniversityDomain } from "@shared/lib/universities";
 import classes from "./sign-in.module.scss";
 
 const SignInPage = () => {
@@ -17,8 +17,7 @@ const SignInPage = () => {
     password: "",
   });
 
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [loggedInEmail, setLoggedInEmail] = useState("");
+  const { setUniversityInfo } = useUniversityStore();
 
   const handleChange = (field: string, value: string) => {
     setAccount((prev) => ({
@@ -37,60 +36,54 @@ const SignInPage = () => {
       const email = response.email || account.email;
       setCookie("user_email", email);
 
-      // Check if user has a university email
-      const uniDomain = getUniversityDomain(email);
-      if (uniDomain) {
-        setLoggedInEmail(email);
-        setShowOnboarding(true);
-      } else {
-        router.push("/home");
+      // Fetch personal info to restore university state from database
+      try {
+        const userInfo = await getPersonalInfo();
+        if (userInfo && userInfo.universityDomain) {
+          setUniversityInfo({
+            universityDomain: userInfo.universityDomain ?? null,
+            universityName: userInfo.universityName ?? null,
+            facultyCode: userInfo.facultyCode ?? null,
+            facultyName: userInfo.facultyName ?? null,
+          });
+        }
+      } catch (err) {
+        console.error("Could not fetch personal info after login", err);
       }
+
+      router.push("/home");
     } catch (err) {
       console.error("Sign-in failed:", err);
     }
   };
 
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    router.push("/home");
-  };
-
   return (
-    <>
-      <form onSubmit={handleSubmit} className={classes.container}>
-        <h2 className={classes.title}>Sign In</h2>
-        <Input
-          type="email"
-          placeholder="Email"
-          value={account.email}
-          onChange={(e) => handleChange("email", e.target.value)}
-          className={classes.input}
-          required
-        />
-        <Input
-          type="password"
-          placeholder="Password"
-          value={account.password}
-          onChange={(e) => handleChange("password", e.target.value)}
-          className={classes.input}
-          required
-        />
-        <Button type="submit" className={classes.button}>
-          Sign In
-        </Button>
+    <form onSubmit={handleSubmit} className={classes.container}>
+      <h2 className={classes.title}>Sign In</h2>
+      <Input
+        type="email"
+        placeholder="Email"
+        value={account.email}
+        onChange={(e) => handleChange("email", e.target.value)}
+        className={classes.input}
+        required
+      />
+      <Input
+        type="password"
+        placeholder="Password"
+        value={account.password}
+        onChange={(e) => handleChange("password", e.target.value)}
+        className={classes.input}
+        required
+      />
+      <Button type="submit" className={classes.button}>
+        Sign In
+      </Button>
 
-        <div className={classes.links}>
-          <a href="/sign-up">Sign up</a>
-        </div>
-      </form>
-
-      {showOnboarding && (
-        <UniversityOnboardingModal
-          email={loggedInEmail}
-          onComplete={handleOnboardingComplete}
-        />
-      )}
-    </>
+      <div className={classes.links}>
+        <a href="/sign-up">Sign up</a>
+      </div>
+    </form>
   );
 };
 

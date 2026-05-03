@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useUniversityStore } from "@entities/university";
-import { fetchImageAsBlobURL } from "@entities/image";
+import { fetchImageWithFallbacks } from "@entities/image";
 import classes from "./university-mode.module.scss";
 
 const UniversityModeToggle = () => {
@@ -20,14 +20,9 @@ const UniversityModeToggle = () => {
 
   useEffect(() => {
     if (!universityDomain) return;
-    fetchImageAsBlobURL(`universities/${universityDomain}/logo.png`)
+    fetchImageWithFallbacks(`universities/${universityDomain}/logo`, ["png", "svg", "jpg", "jpeg"])
       .then(setLogoUrl)
-      .catch(() => {
-        // Try jpg as fallback
-        fetchImageAsBlobURL(`universities/${universityDomain}/logo.jpg`)
-          .then(setLogoUrl)
-          .catch(() => setLogoUrl(null));
-      });
+      .catch(() => setLogoUrl(null));
   }, [universityDomain]);
 
   // Don't render if user has no university

@@ -15,6 +15,11 @@ import Separator from "@shared/ui/separator";
 import BlogPost from "@core-components/blog-post";
 import { fetchUserPosts } from "@entities/blog-post/helpers";
 import NoResultsFound from "@shared/ui/no-results-found";
+import { getUniversityDomain, getUniversityLogoBasePath, getFacultyLogoBasePath } from "@shared/lib/universities";
+import { UniversityOnboardingModal } from "@features/university-onboarding";
+import { fetchImageWithFallbacks } from "@entities/image";
+import SchoolIcon from "@mui/icons-material/School";
+import EditIcon from "@mui/icons-material/Edit";
 import SeparatorLayout from "../layout/separator-layout";
 import { useAccountStore } from "./useAccountStore";
 import classes from "./account.module.scss";
@@ -41,7 +46,16 @@ const Account = () => {
     setDescription,
     name,
     setName,
+    email,
+    universityDomain,
+    universityName,
+    facultyName,
+    setAccountInfo,
   } = useAccountStore();
+
+  const [showUniModal, setShowUniModal] = useState(false);
+  const [uniLogoUrl, setUniLogoUrl] = useState<string | null>(null);
+  const [facultyLogoUrl, setFacultyLogoUrl] = useState<string | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [followStatus, setFollowStatus] = useState<FollowStatus | null>(null);
@@ -65,12 +79,46 @@ const Account = () => {
       setLogoKey(info.logoKey);
       setName(info.name);
       setDescription(info.description ?? "");
+      setAccountInfo({
+        email: info.email,
+        universityDomain: info.universityDomain,
+        universityName: info.universityName,
+        facultyCode: info.facultyCode,
+        facultyName: info.facultyName,
+      });
     };
 
-    if (!logoKey && !name && !description) {
+    if (!logoKey && !name && !description && !email) {
       fetchInfo();
     }
-  }, [logoKey, name, description, setLogoKey, setName, setDescription]);
+  }, [logoKey, name, description, email, setLogoKey, setName, setDescription, setAccountInfo]);
+
+  // Load university logo
+  useEffect(() => {
+    if (!universityDomain) {
+      setUniLogoUrl(null);
+      return;
+    }
+    const base = getUniversityLogoBasePath(universityDomain);
+    if (!base) return;
+    fetchImageWithFallbacks(base, ["png", "svg", "jpg", "jpeg"])
+      .then(setUniLogoUrl)
+      .catch(() => setUniLogoUrl(null));
+  }, [universityDomain]);
+
+  // Load faculty logo
+  const { facultyCode } = useAccountStore();
+  useEffect(() => {
+    if (!universityDomain || !facultyCode) {
+      setFacultyLogoUrl(null);
+      return;
+    }
+    const base = getFacultyLogoBasePath(universityDomain, facultyCode);
+    if (!base) return;
+    fetchImageWithFallbacks(base, ["png", "svg", "jpg", "jpeg"])
+      .then(setFacultyLogoUrl)
+      .catch(() => setFacultyLogoUrl(null));
+  }, [universityDomain, facultyCode]);
 
   useEffect(() => {
     const loadFollowStatus = async () => {
@@ -180,7 +228,80 @@ const Account = () => {
             description={description}
             name={name}
           />
+
+          {email && getUniversityDomain(email) && (
+            <div className={classes.universitySection}>
+              <div className={classes.uniSectionHeader}>
+                <SchoolIcon className={classes.uniSectionIcon} />
+                <span>University Affiliation</span>
+                <button
+                  className={classes.uniEditBtn}
+                  onClick={() => setShowUniModal(true)}
+                  type="button"
+                >
+                  <EditIcon style={{ fontSize: 16 }} />
+                  {universityName ? "Edit" : "Set up"}
+                </button>
+              </div>
+
+              {universityName ? (
+                <div className={classes.uniCards}>
+                  <div className={classes.uniCard}>
+                    {uniLogoUrl ? (
+                      <img src={uniLogoUrl} alt={universityName} className={classes.uniCardLogo} />
+                    ) : (
+                      <div className={classes.uniCardLogoPlaceholder}>
+                        <SchoolIcon style={{ fontSize: 20, color: "#7c8db0" }} />
+                      </div>
+                    )}
+                    <div className={classes.uniCardInfo}>
+                      <div className={classes.uniCardLabel}>University</div>
+                      <div className={classes.uniCardName}>{universityName}</div>
+                    </div>
+                  </div>
+
+                  {facultyName && (
+                    <div className={classes.uniCard}>
+                      {facultyLogoUrl ? (
+                        <img src={facultyLogoUrl} alt={facultyName} className={classes.uniCardLogo} />
+                      ) : (
+                        <div className={classes.uniCardLogoPlaceholder}>
+                          <SchoolIcon style={{ fontSize: 20, color: "#7c8db0" }} />
+                        </div>
+                      )}
+                      <div className={classes.uniCardInfo}>
+                        <div className={classes.uniCardLabel}>Faculty</div>
+                        <div className={classes.uniCardName}>{facultyName}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className={classes.uniNotSet}>Not configured yet. Click Edit to set up your university.</div>
+              )}
+            </div>
+          )}
         </div>
+
+        {showUniModal && email && (
+          <UniversityOnboardingModal
+            email={email}
+            forceShow={true}
+            onComplete={() => {
+              setShowUniModal(false);
+              // Optimistically update the store to trigger a re-render of this section
+              getPersonalInfo().then(info => {
+                 setAccountInfo({
+                   email: info.email,
+                   universityDomain: info.universityDomain,
+                   universityName: info.universityName,
+                   facultyCode: info.facultyCode,
+                   facultyName: info.facultyName,
+                 });
+              });
+            }}
+          />
+        )}
 
         <div style={{ overflow: "auto", height: "100%" }}>
           {posts.map((item, idx) => {

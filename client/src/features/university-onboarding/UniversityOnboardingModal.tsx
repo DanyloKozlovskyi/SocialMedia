@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import {
-  getUniversityByDomain,
   getUniversityDomain,
   getAllFaculties,
+  getUniversityLogoBasePath,
+  getFacultyLogoBasePath,
   UNIVERSITIES,
 } from "@shared/lib/universities";
 import type { FacultyRegistry } from "@shared/lib/universities";
@@ -13,17 +14,18 @@ import {
   useUniversityStore,
   updateUniversityInfo,
 } from "@entities/university";
-import { fetchImageAsBlobURL } from "@entities/image";
+import { fetchImageWithFallbacks } from "@entities/image";
 import classes from "./university-onboarding.module.scss";
 
 interface Props {
   email: string;
   onComplete: () => void;
+  forceShow?: boolean;
 }
 
 type Step = "confirm" | "faculty" | "details" | "success";
 
-const UniversityOnboardingModal = ({ email, onComplete }: Props) => {
+const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
   const {
     setUniversityInfo,
     setOnboardingDismissed,
@@ -44,27 +46,35 @@ const UniversityOnboardingModal = ({ email, onComplete }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Don't show if: no university match, already onboarded, or already dismissed
-  const shouldShow = !!university && !onboardingDismissed && !storedDomain;
+  const shouldShow = forceShow || (!!university && !onboardingDismissed && !storedDomain);
 
   // Load university logo
   useEffect(() => {
-    if (!university) return;
-    fetchImageAsBlobURL(university.logoPath)
+    if (!university || !uniDomain) return;
+    const logoBaseUrl = getUniversityLogoBasePath(uniDomain);
+    if (!logoBaseUrl) {
+      setUniLogoUrl(null);
+      return;
+    }
+    fetchImageWithFallbacks(logoBaseUrl, ["png", "svg", "jpg", "jpeg"])
       .then(setUniLogoUrl)
       .catch(() => setUniLogoUrl(null));
-  }, [university?.logoPath]);
+  }, [university, uniDomain]);
 
   // Load faculty logos when entering faculty step
   useEffect(() => {
     if (step !== "faculty" || !uniDomain) return;
 
     const faculties = getAllFaculties(uniDomain);
-    faculties.forEach(({ code, faculty }) => {
-      fetchImageAsBlobURL(faculty.logoPath)
-        .then((url) =>
-          setFacultyLogos((prev) => ({ ...prev, [code]: url })),
-        )
-        .catch(() => {});
+    faculties.forEach(({ code }) => {
+      const fLogoBaseUrl = getFacultyLogoBasePath(uniDomain, code);
+      if (fLogoBaseUrl) {
+        fetchImageWithFallbacks(fLogoBaseUrl, ["png", "svg", "jpg", "jpeg"])
+          .then((url) =>
+            setFacultyLogos((prev) => ({ ...prev, [code]: url })),
+          )
+          .catch(() => {});
+      }
     });
   }, [step, uniDomain]);
 

@@ -8,6 +8,11 @@ interface UpdateUser {
 interface User extends UpdateUser {
   id: string;
   userName: string;
+  email?: string;
+  universityDomain?: string | null;
+  universityName?: string | null;
+  facultyCode?: string | null;
+  facultyName?: string | null;
 }
 
 interface JwtPayload {

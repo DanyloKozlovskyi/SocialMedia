@@ -17,6 +17,11 @@ export const wipeAllStores = () => {
     logoKey: null,
     description: "",
     name: "",
+    email: undefined,
+    universityDomain: null,
+    universityName: null,
+    facultyCode: null,
+    facultyName: null,
   });
 
   useHomeStore.setState({
