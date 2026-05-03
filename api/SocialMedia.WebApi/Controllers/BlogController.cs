@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SocialMedia.Application.BlogPosts;
+using SocialMedia.Application.Recommendation;
 using SocialMedia.Domain.Entities;
 using System.Security.Claims;
 
@@ -13,9 +14,12 @@ namespace SocialMedia.WebApi.Controllers
 	public class BlogController : ControllerBase
 	{
 		private readonly IBlogService blogPostService;
-		public BlogController(IBlogService blogService)
+		private readonly IUniversityFeedService _universityFeedService;
+
+		public BlogController(IBlogService blogService, IUniversityFeedService universityFeedService)
 		{
 			blogPostService = blogService;
+			_universityFeedService = universityFeedService;
 		}
 
 		private Guid? GetUserId()
@@ -147,6 +151,17 @@ namespace SocialMedia.WebApi.Controllers
 			var posts = await blogPostService.GetByUniversity(universityDomain, facultyCode, userId, page, pageSize);
 
 			return Ok(posts);
+		}
+
+		[HttpGet("[action]")]
+		public async Task<IActionResult> GetUniversityFeed([FromQuery] int page = 1, [FromQuery] int pageSize = 30)
+		{
+			var userId = GetUserId();
+			if (!userId.HasValue)
+				return Unauthorized();
+
+			var result = await _universityFeedService.GetUniversityFeedAsync(userId.Value, page, pageSize);
+			return Ok(result);
 		}
 	}
 }

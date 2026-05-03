@@ -173,6 +173,8 @@ builder.Services.AddScoped<TrendingGenerator>();
 builder.Services.AddScoped<ExplorationGenerator>();
 builder.Services.AddScoped<CollaborativeGenerator>();
 builder.Services.AddScoped<IFeedMixer, FeedMixer>();
+builder.Services.AddScoped<IUniversityPostRankingCache, UniversityPostRankingCache>();
+builder.Services.AddScoped<IUniversityFeedService, UniversityFeedService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
