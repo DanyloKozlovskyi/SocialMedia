@@ -16,4 +16,11 @@ public class BlogPost : IKeyedEntity<Guid>
 	public Guid? ParentId { get; set; } = null; // null if it is actual post
 	public BlogPost? Parent { get; set; }
 	public ICollection<BlogPost> Comments { get; set; } = new List<BlogPost>();
+
+	// University context for filtering/recommendations
+	public string? UniversityDomain { get; set; }
+	public string? FacultyCode { get; set; }
+
+	// Post tags for interest-based recommendations (stored as JSON array)
+	public List<string> Tags { get; set; } = new();
 }

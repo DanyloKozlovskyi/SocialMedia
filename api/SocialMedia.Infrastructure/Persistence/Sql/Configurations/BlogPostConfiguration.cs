@@ -23,5 +23,9 @@ public class BlogPostConfiguration : IEntityTypeConfiguration<BlogPost>
 			   .HasForeignKey(l => l.PostId);
 
 		builder.Property(b => b.PostedAt).HasDefaultValueSql("GETUTCDATE()");
+
+		// EF Core 8+ handles List<string> as JSON array in nvarchar(max) by default
+		builder.Property(b => b.Tags)
+			.HasColumnType("nvarchar(max)");
 	}
 }
