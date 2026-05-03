@@ -441,5 +441,24 @@ namespace SocialMedia.WebApi.Controllers
 				facultyName = currentUser.FacultyName
 			});
 		}
+
+		[HttpPost("[action]")]
+		[Authorize]
+		public async Task<IActionResult> UpdateInterests(UpdateInterestsDto dto)
+		{
+			var userId = GetUserId();
+			var user = await _userManager.FindByIdAsync(userId.ToString());
+			if (user == null)
+				return NotFound();
+
+			user.Interests = dto.Interests;
+
+			var result = await _userManager.UpdateAsync(user);
+
+			if (!result.Succeeded)
+				return BadRequest(result.Errors);
+
+			return Ok(new { interests = user.Interests });
+		}
 	}
 }
