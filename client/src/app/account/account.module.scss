@@ -165,3 +165,195 @@
   color: #7c8db0;
   padding: 8px 0;
 }
+
+.interestsSection {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff5f0 0%, #ffede8 100%);
+  border: 1.5px solid #fdd4c7;
+}
+
+.interestsSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 12px;
+}
+
+.interestsSectionIcon {
+  font-size: 20px !important;
+  color: #ea580c;
+}
+
+.interestsEditBtn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ea580c;
+  background: rgba(234, 88, 12, 0.08);
+  border: 1.5px solid rgba(234, 88, 12, 0.25);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(234, 88, 12, 0.15);
+    border-color: #ea580c;
+  }
+}
+
+.interestsEditMode {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.interestChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.interestChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  border: 1px solid #fed7aa;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #c2410c;
+}
+
+.interestChipReadonly {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: #fff;
+  border: 1px solid #fed7aa;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #c2410c;
+}
+
+.chipRemove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #ea580c;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s;
+
+  &:hover {
+    color: #dc2626;
+  }
+}
+
+.addTagRow {
+  display: flex;
+  gap: 8px;
+}
+
+.tagInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1.5px solid #dde2ea;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #333;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: #ea580c;
+  }
+}
+
+.addTagBtn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: #ea580c;
+  color: #fff;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #c2410c;
+  }
+
+  &:disabled {
+    background: #fed7aa;
+    cursor: not-allowed;
+  }
+}
+
+.interestsActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.cancelBtn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: #f0f0f5;
+  color: #555;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #e4e4ec;
+  }
+}
+
+.saveBtn {
+  padding: 8px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(234, 88, 12, 0.35);
+  }
+
+  &:disabled {
+    background: #fed7aa;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+}
+
+.noInterests {
+  font-size: 13px;
+  color: #9ca3af;
+  font-style: italic;
+}

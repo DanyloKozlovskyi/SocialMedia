@@ -23,8 +23,10 @@ type AccountStore = {
   universityName?: string | null;
   facultyCode?: string | null;
   facultyName?: string | null;
+  interests: string[];
 
   setUserId: (id: string) => void;
+  setInterests: (interests: string[]) => void;
   setLogoKey: (l: string | null) => void;
   setDescription: (d: string) => void;
   setName: (n: string) => void;
@@ -61,8 +63,10 @@ export const useAccountStore = create<AccountStore>((set) => ({
   universityName: null,
   facultyCode: null,
   facultyName: null,
+  interests: [],
 
   setUserId: (id) => set({ userId: id }),
+  setInterests: (interests) => set({ interests }),
   setLogoKey: (l) => set({ logoKey: l }),
   setDescription: (d) => set({ description: d }),
   setName: (n) => set({ name: n }),

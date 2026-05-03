@@ -13,6 +13,7 @@ interface User extends UpdateUser {
   universityName?: string | null;
   facultyCode?: string | null;
   facultyName?: string | null;
+  interests?: string[];
 }
 
 interface JwtPayload {

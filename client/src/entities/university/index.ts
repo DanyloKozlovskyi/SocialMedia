@@ -1,14 +1,15 @@
 export { useUniversityStore } from "./store";
-export { 
-  updateUniversityInfo, 
-  clearUniversityInfo, 
-  getUniversityPeers, 
+export {
+  updateUniversityInfo,
+  clearUniversityInfo,
+  getUniversityPeers,
   getUniversityStats,
-  getUniversityPosts 
+  getUniversityPosts,
+  updateInterests,
 } from "./api";
-export type { 
-  UniversityInfo, 
-  UniversityPeer, 
-  UniversityStats, 
-  UpdateUniversityInfoPayload 
+export type {
+  UniversityInfo,
+  UniversityPeer,
+  UniversityStats,
+  UpdateUniversityInfoPayload,
 } from "./types";

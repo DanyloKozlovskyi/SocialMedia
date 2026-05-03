@@ -13,6 +13,7 @@ import type { FacultyRegistry } from "@shared/lib/universities";
 import {
   useUniversityStore,
   updateUniversityInfo,
+  updateInterests,
 } from "@entities/university";
 import { fetchImageWithFallbacks } from "@entities/image";
 import classes from "./university-onboarding.module.scss";
@@ -39,14 +40,19 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
   const [step, setStep] = useState<Step>("confirm");
   const [uniLogoUrl, setUniLogoUrl] = useState<string | null>(null);
   const [facultyLogos, setFacultyLogos] = useState<Record<string, string>>({});
-  const [selectedFacultyCode, setSelectedFacultyCode] = useState<string | null>(null);
+  const [selectedFacultyCode, setSelectedFacultyCode] = useState<string | null>(
+    null,
+  );
   const [selectedMajor, setSelectedMajor] = useState<string>("");
   const [yearOfStudy, setYearOfStudy] = useState<number>(1);
   const [academicRole, setAcademicRole] = useState<string>("student");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [interests, setInterests] = useState<string[]>([]);
+  const [customTagInput, setCustomTagInput] = useState<string>("");
 
   // Don't show if: no university match, already onboarded, or already dismissed
-  const shouldShow = forceShow || (!!university && !onboardingDismissed && !storedDomain);
+  const shouldShow =
+    forceShow || (!!university && !onboardingDismissed && !storedDomain);
 
   // Load university logo
   useEffect(() => {
@@ -70,9 +76,7 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
       const fLogoBaseUrl = getFacultyLogoBasePath(uniDomain, code);
       if (fLogoBaseUrl) {
         fetchImageWithFallbacks(fLogoBaseUrl, ["png", "svg", "jpg", "jpeg"])
-          .then((url) =>
-            setFacultyLogos((prev) => ({ ...prev, [code]: url })),
-          )
+          .then((url) => setFacultyLogos((prev) => ({ ...prev, [code]: url })))
           .catch(() => {});
       }
     });
@@ -88,16 +92,43 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
   const handleSelectFaculty = (code: string) => {
     setSelectedFacultyCode(code);
     setSelectedMajor("");
+    // Auto-populate interests from faculty
+    if (uniDomain) {
+      const faculty = UNIVERSITIES[uniDomain]?.faculties[code];
+      if (faculty?.interests) {
+        setInterests([...faculty.interests]);
+      }
+    }
     setStep("details");
+  };
+
+  const handleRemoveInterest = (tag: string) => {
+    setInterests((prev) => prev.filter((t) => t !== tag));
+  };
+
+  const handleAddCustomTag = () => {
+    const tag = customTagInput.trim().toLowerCase();
+    if (tag && !interests.includes(tag)) {
+      setInterests((prev) => [...prev, tag]);
+    }
+    setCustomTagInput("");
+  };
+
+  const handleCustomTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddCustomTag();
+    }
   };
 
   const selectedFaculty: FacultyRegistry | null =
     uniDomain && selectedFacultyCode
-      ? UNIVERSITIES[uniDomain]?.faculties[selectedFacultyCode] ?? null
+      ? (UNIVERSITIES[uniDomain]?.faculties[selectedFacultyCode] ?? null)
       : null;
 
   const handleSubmit = async () => {
-    if (!uniDomain || !university || !selectedFacultyCode || !selectedFaculty) return;
+    if (!uniDomain || !university || !selectedFacultyCode || !selectedFaculty)
+      return;
     setIsSubmitting(true);
 
     try {
@@ -110,6 +141,9 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
         yearOfStudy,
         academicRole,
       });
+
+      // Save interests
+      await updateInterests(interests);
 
       setUniversityInfo({
         universityDomain: uniDomain,
@@ -142,7 +176,11 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
             {step === "details" && "Step 3 of 3"}
             {step === "success" && "Done!"}
           </span>
-          <button className={classes.closeBtn} onClick={handleDismiss} type="button">
+          <button
+            className={classes.closeBtn}
+            onClick={handleDismiss}
+            type="button"
+          >
             <CloseIcon fontSize="small" />
           </button>
         </div>
@@ -152,7 +190,11 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
           <>
             <div className={classes.logoSection}>
               {uniLogoUrl ? (
-                <img src={uniLogoUrl} alt={university.name} className={classes.uniLogo} />
+                <img
+                  src={uniLogoUrl}
+                  alt={university.name}
+                  className={classes.uniLogo}
+                />
               ) : (
                 <div className={classes.uniLogo} />
               )}
@@ -162,10 +204,18 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
               Are you associated with this university?
             </div>
             <div className={classes.actions}>
-              <button className={classes.primaryBtn} onClick={handleConfirmYes} type="button">
+              <button
+                className={classes.primaryBtn}
+                onClick={handleConfirmYes}
+                type="button"
+              >
                 Yes, I am
               </button>
-              <button className={classes.secondaryBtn} onClick={handleDismiss} type="button">
+              <button
+                className={classes.secondaryBtn}
+                onClick={handleDismiss}
+                type="button"
+              >
                 Not now
               </button>
             </div>
@@ -233,7 +283,9 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
               >
                 <option value="">Select major…</option>
                 {selectedFaculty.majors.map((m) => (
-                  <option key={m} value={m}>{m}</option>
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
                 ))}
               </select>
             </div>
@@ -246,7 +298,9 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
                 onChange={(e) => setYearOfStudy(Number(e.target.value))}
               >
                 {[1, 2, 3, 4, 5, 6].map((y) => (
-                  <option key={y} value={y}>{y}</option>
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
                 ))}
               </select>
             </div>
@@ -263,6 +317,42 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
                 <option value="ta">Teaching Assistant</option>
                 <option value="alumni">Alumni</option>
               </select>
+            </div>
+
+            <div className={classes.formGroup}>
+              <label className={classes.formLabel}>Interests</label>
+              <div className={classes.interestChips}>
+                {interests.map((tag) => (
+                  <span key={tag} className={classes.interestChip}>
+                    {tag}
+                    <button
+                      type="button"
+                      className={classes.chipRemove}
+                      onClick={() => handleRemoveInterest(tag)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className={classes.addTagRow}>
+                <input
+                  type="text"
+                  className={classes.formInput}
+                  placeholder="Add custom tag..."
+                  value={customTagInput}
+                  onChange={(e) => setCustomTagInput(e.target.value)}
+                  onKeyDown={handleCustomTagKeyDown}
+                />
+                <button
+                  type="button"
+                  className={classes.addTagBtn}
+                  onClick={handleAddCustomTag}
+                  disabled={!customTagInput.trim()}
+                >
+                  Add
+                </button>
+              </div>
             </div>
 
             <div className={classes.actions}>
@@ -291,10 +381,15 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
             <div className={classes.successIcon}>🎓</div>
             <div className={classes.successTitle}>You&apos;re all set!</div>
             <div className={classes.successSubtitle}>
-              You can now switch to University Mode to see posts from your classmates and join faculty chats.
+              You can now switch to University Mode to see posts from your
+              classmates and join faculty chats.
             </div>
             <div className={classes.actions} style={{ marginTop: 20 }}>
-              <button className={classes.primaryBtn} onClick={onComplete} type="button">
+              <button
+                className={classes.primaryBtn}
+                onClick={onComplete}
+                type="button"
+              >
                 Get started
               </button>
             </div>

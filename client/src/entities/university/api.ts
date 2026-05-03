@@ -17,9 +17,7 @@ export async function updateUniversityInfo(
 }
 
 export async function clearUniversityInfo(): Promise<string> {
-  const response = await api.delete(
-    `${ENDPOINTS.ACCOUNT}/ClearUniversityInfo`,
-  );
+  const response = await api.delete(`${ENDPOINTS.ACCOUNT}/ClearUniversityInfo`);
   return response.data;
 }
 
@@ -42,9 +40,16 @@ export async function getUniversityPeers(
 }
 
 export async function getUniversityStats(): Promise<UniversityStats> {
-  const response = await api.get(
-    `${ENDPOINTS.ACCOUNT}/GetUniversityStats`,
-  );
+  const response = await api.get(`${ENDPOINTS.ACCOUNT}/GetUniversityStats`);
+  return response.data;
+}
+
+export async function updateInterests(
+  interests: string[],
+): Promise<{ interests: string[] }> {
+  const response = await api.post(`${ENDPOINTS.ACCOUNT}/UpdateInterests`, {
+    interests,
+  });
   return response.data;
 }
 
@@ -60,8 +65,6 @@ export async function getUniversityPosts(
   params.set("page", String(page));
   params.set("pageSize", String(pageSize));
 
-  const response = await api.get(
-    `${ENDPOINTS.BLOG}/GetByUniversity?${params}`,
-  );
+  const response = await api.get(`${ENDPOINTS.BLOG}/GetByUniversity?${params}`);
   return response.data;
 }
