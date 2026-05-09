@@ -16,6 +16,7 @@ import {
   updateInterests,
 } from "@entities/university";
 import { fetchImageWithFallbacks } from "@entities/image";
+import { chatApi } from "@entities/chat";
 import classes from "./university-onboarding.module.scss";
 
 interface Props {
@@ -44,6 +45,7 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
     null,
   );
   const [selectedMajor, setSelectedMajor] = useState<string>("");
+  const [selectedMajorKey, setSelectedMajorKey] = useState<string>("");
   const [yearOfStudy, setYearOfStudy] = useState<number>(1);
   const [academicRole, setAcademicRole] = useState<string>("student");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,6 +94,7 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
   const handleSelectFaculty = (code: string) => {
     setSelectedFacultyCode(code);
     setSelectedMajor("");
+    setSelectedMajorKey("");
     // Auto-populate interests from faculty
     if (uniDomain) {
       const faculty = UNIVERSITIES[uniDomain]?.faculties[code];
@@ -138,6 +141,7 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
         facultyCode: selectedFacultyCode,
         facultyName: selectedFaculty.name,
         major: selectedMajor || null,
+        majorKey: selectedMajorKey || null,
         yearOfStudy,
         academicRole,
       });
@@ -145,11 +149,43 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
       // Save interests
       await updateInterests(interests);
 
+      try {
+        await chatApi.joinUniversityChat(uniDomain, university.name);
+
+        await chatApi.joinFacultyChat(
+          uniDomain,
+          selectedFacultyCode,
+          selectedFaculty.name,
+        );
+
+        if (selectedMajor && selectedMajorKey) {
+          await chatApi.joinMajorChat(
+            uniDomain,
+            selectedFacultyCode,
+            selectedMajorKey,
+            selectedMajor,
+          );
+
+          await chatApi.joinMajorYearChat(
+            uniDomain,
+            selectedFacultyCode,
+            selectedMajorKey,
+            selectedMajor,
+            yearOfStudy,
+          );
+        }
+      } catch (chatErr) {
+        console.error("Failed to join university chats:", chatErr);
+      }
+
       setUniversityInfo({
         universityDomain: uniDomain,
         universityName: university.name,
         facultyCode: selectedFacultyCode,
         facultyName: selectedFaculty.name,
+        major: selectedMajor || null,
+        majorKey: selectedMajorKey || null,
+        yearOfStudy,
       });
 
       setOnboardingDismissed(true);
@@ -279,7 +315,17 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
               <select
                 className={classes.formSelect}
                 value={selectedMajor}
-                onChange={(e) => setSelectedMajor(e.target.value)}
+                onChange={(e) => {
+                  const majorIndex = selectedFaculty.majors.indexOf(
+                    e.target.value,
+                  );
+                  setSelectedMajor(e.target.value);
+                  setSelectedMajorKey(
+                    majorIndex >= 0
+                      ? selectedFaculty.majorKeys[majorIndex]
+                      : "",
+                  );
+                }}
               >
                 <option value="">Select major…</option>
                 {selectedFaculty.majors.map((m) => (

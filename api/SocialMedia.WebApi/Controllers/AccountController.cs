@@ -325,6 +325,7 @@ namespace SocialMedia.WebApi.Controllers
 			user.FacultyCode = dto.FacultyCode;
 			user.FacultyName = dto.FacultyName;
 			user.Major = dto.Major;
+			user.MajorKey = dto.MajorKey;
 			user.YearOfStudy = dto.YearOfStudy;
 			user.AcademicRole = dto.AcademicRole;
 			user.IsUniversityVerified = !string.IsNullOrEmpty(dto.UniversityDomain);
@@ -341,6 +342,7 @@ namespace SocialMedia.WebApi.Controllers
 				facultyCode = user.FacultyCode,
 				facultyName = user.FacultyName,
 				major = user.Major,
+				majorKey = user.MajorKey,
 				yearOfStudy = user.YearOfStudy,
 				academicRole = user.AcademicRole,
 				isUniversityVerified = user.IsUniversityVerified

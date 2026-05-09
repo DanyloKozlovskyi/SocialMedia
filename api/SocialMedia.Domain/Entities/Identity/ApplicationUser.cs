@@ -25,6 +25,7 @@ public class ApplicationUser : IdentityUser<Guid>
 	public string? FacultyCode { get; set; }
 	public string? FacultyName { get; set; }
 	public string? Major { get; set; }
+	public string? MajorKey { get; set; }
 	public int? YearOfStudy { get; set; }
 	public string? AcademicRole { get; set; } // "student", "lecturer", "ta", "alumni"
 	public bool IsUniversityVerified { get; set; } = false;

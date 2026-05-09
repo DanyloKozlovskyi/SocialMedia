@@ -22,11 +22,16 @@ public class ChatService : IChatService
         {
             ConversationId = c.Id,
             Name = c.Name,
+            Type = c.Type,
+            UniversityDomain = c.UniversityDomain,
+            FacultyCode = c.FacultyCode,
+            Major = c.Major,
+            YearOfStudy = c.YearOfStudy,
             LastMessage = c.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault() != null
                 ? MessageDto.FromEntity(c.Messages.OrderByDescending(m => m.CreatedAt).First())
                 : null,
             Participants = c.Participants
-                .Where(p => p.UserId != userId)
+                // .Where(p => p.UserId != userId)
                 .Select(p => new ParticipantDto
                 {
                     UserId = p.UserId,
@@ -181,5 +186,212 @@ public class ChatService : IChatService
             }
             await _messageRepository.SaveChangesAsync();
         }
+    }
+
+    public async Task LeaveConversation(Guid conversationId, Guid userId)
+    {
+        var isParticipant = await _conversationRepository.IsParticipant(conversationId, userId);
+        if (!isParticipant)
+        {
+            throw new UnauthorizedAccessException("User is not a participant of this conversation");
+        }
+
+        await _conversationRepository.RemoveParticipant(conversationId, userId);
+        await _conversationRepository.SaveChangesAsync();
+    }
+
+    public async Task DeleteConversation(Guid conversationId, Guid userId)
+    {
+        var conversation = await _conversationRepository.GetConversationById(conversationId);
+        if (conversation == null)
+        {
+            throw new KeyNotFoundException("Conversation not found");
+        }
+
+        var isParticipant = await _conversationRepository.IsParticipant(conversationId, userId);
+        if (!isParticipant)
+        {
+            throw new UnauthorizedAccessException("User is not a participant of this conversation");
+        }
+
+        // For direct chats (2 participants), delete the whole conversation
+        // For group/university chats, just remove the user
+        if (conversation.Participants.Count <= 2 && conversation.Type == ConversationType.Direct)
+        {
+            await _conversationRepository.DeleteConversation(conversationId);
+        }
+        else
+        {
+            await _conversationRepository.RemoveParticipant(conversationId, userId);
+        }
+
+        await _conversationRepository.SaveChangesAsync();
+    }
+
+    public async Task<ParticipantsPageDto> GetConversationParticipants(Guid conversationId, Guid userId, int page = 1, int pageSize = 20, string? searchQuery = null)
+    {
+        var isParticipant = await _conversationRepository.IsParticipant(conversationId, userId);
+        if (!isParticipant)
+        {
+            throw new UnauthorizedAccessException("User is not a participant of this conversation");
+        }
+
+        var skip = (page - 1) * pageSize;
+        var (participants, totalCount) = await _conversationRepository.GetParticipantsPaginated(conversationId, skip, pageSize, searchQuery);
+
+        return new ParticipantsPageDto
+        {
+            Participants = participants.Select(p => new ParticipantDto
+            {
+                UserId = p.UserId,
+                Name = p.User?.Name,
+                LogoKey = p.User?.LogoKey,
+                LogoContentType = p.User?.LogoContentType
+            }).ToList(),
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+            HasMore = skip + pageSize < totalCount
+        };
+    }
+
+    public async Task<Guid> JoinUniversityChat(Guid userId, string universityDomain, string universityName)
+    {
+        var conversation = await _conversationRepository.GetUniversityChat(universityDomain);
+
+        if (conversation == null)
+        {
+            conversation = new Conversation
+            {
+                Id = Guid.NewGuid(),
+                Name = $"{universityName} – Chat",
+                Type = ConversationType.University,
+                UniversityDomain = universityDomain,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            await _conversationRepository.Create(conversation);
+        }
+
+        var isParticipant = await _conversationRepository.IsParticipant(conversation.Id, userId);
+        if (!isParticipant)
+        {
+            await _conversationRepository.AddParticipant(new ConversationParticipant
+            {
+                ConversationId = conversation.Id,
+                UserId = userId,
+                JoinedAt = DateTime.UtcNow
+            });
+        }
+
+        await _conversationRepository.SaveChangesAsync();
+        return conversation.Id;
+    }
+
+    public async Task<Guid> JoinFacultyChat(Guid userId, string universityDomain, string facultyCode, string facultyName)
+    {
+        var conversation = await _conversationRepository.GetFacultyChat(universityDomain, facultyCode);
+
+        if (conversation == null)
+        {
+            conversation = new Conversation
+            {
+                Id = Guid.NewGuid(),
+                Name = $"{facultyName} – Chat",
+                Type = ConversationType.Faculty,
+                UniversityDomain = universityDomain,
+                FacultyCode = facultyCode,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            await _conversationRepository.Create(conversation);
+        }
+
+        var isParticipant = await _conversationRepository.IsParticipant(conversation.Id, userId);
+        if (!isParticipant)
+        {
+            await _conversationRepository.AddParticipant(new ConversationParticipant
+            {
+                ConversationId = conversation.Id,
+                UserId = userId,
+                JoinedAt = DateTime.UtcNow
+            });
+        }
+
+        await _conversationRepository.SaveChangesAsync();
+        return conversation.Id;
+    }
+
+    public async Task<Guid> JoinMajorChat(Guid userId, string universityDomain, string facultyCode, string majorKey, string major)
+    {
+        var conversation = await _conversationRepository.GetMajorChat(universityDomain, facultyCode, majorKey);
+
+        if (conversation == null)
+        {
+            conversation = new Conversation
+            {
+                Id = Guid.NewGuid(),
+                Name = $"{major} – Chat",
+                Type = ConversationType.Major,
+                UniversityDomain = universityDomain,
+                FacultyCode = facultyCode,
+                MajorKey = majorKey,
+                Major = major,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            await _conversationRepository.Create(conversation);
+        }
+
+        var isParticipant = await _conversationRepository.IsParticipant(conversation.Id, userId);
+        if (!isParticipant)
+        {
+            await _conversationRepository.AddParticipant(new ConversationParticipant
+            {
+                ConversationId = conversation.Id,
+                UserId = userId,
+                JoinedAt = DateTime.UtcNow
+            });
+        }
+
+        await _conversationRepository.SaveChangesAsync();
+        return conversation.Id;
+    }
+
+    public async Task<Guid> JoinMajorYearChat(Guid userId, string universityDomain, string facultyCode, string majorKey, string major, int yearOfStudy)
+    {
+        var conversation = await _conversationRepository.GetMajorYearChat(universityDomain, facultyCode, majorKey, yearOfStudy);
+
+        if (conversation == null)
+        {
+            conversation = new Conversation
+            {
+                Id = Guid.NewGuid(),
+                Name = $"{major} – Year {yearOfStudy}",
+                Type = ConversationType.MajorYear,
+                UniversityDomain = universityDomain,
+                FacultyCode = facultyCode,
+                MajorKey = majorKey,
+                Major = major,
+                YearOfStudy = yearOfStudy,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            await _conversationRepository.Create(conversation);
+        }
+
+        var isParticipant = await _conversationRepository.IsParticipant(conversation.Id, userId);
+        if (!isParticipant)
+        {
+            await _conversationRepository.AddParticipant(new ConversationParticipant
+            {
+                ConversationId = conversation.Id,
+                UserId = userId,
+                JoinedAt = DateTime.UtcNow
+            });
+        }
+
+        await _conversationRepository.SaveChangesAsync();
+        return conversation.Id;
     }
 }

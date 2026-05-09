@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SocialMedia.Infrastructure.Persistence.Sql;
 
@@ -11,9 +12,11 @@ using SocialMedia.Infrastructure.Persistence.Sql;
 namespace SocialMedia.Infrastructure.Migrations
 {
     [DbContext(typeof(SocialMediaDbContext))]
-    partial class SocialMediaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260504203728_AddConversationTypeFields")]
+    partial class AddConversationTypeFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -190,9 +193,6 @@ namespace SocialMedia.Infrastructure.Migrations
                     b.Property<string>("Major")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("MajorKey")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -316,9 +316,6 @@ namespace SocialMedia.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Major")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MajorKey")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")

@@ -45,6 +45,9 @@ const SignInPage = () => {
             universityName: userInfo.universityName ?? null,
             facultyCode: userInfo.facultyCode ?? null,
             facultyName: userInfo.facultyName ?? null,
+            major: userInfo.major ?? null,
+            majorKey: userInfo.majorKey ?? null,
+            yearOfStudy: userInfo.yearOfStudy ?? null,
           });
         }
       } catch (err) {

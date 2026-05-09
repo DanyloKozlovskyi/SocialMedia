@@ -13,6 +13,9 @@ interface UniversityStoreState {
   universityName: string | null;
   facultyCode: string | null;
   facultyName: string | null;
+  major: string | null;
+  majorKey: string | null;
+  yearOfStudy: number | null;
   // Whether onboarding has been completed or dismissed
   onboardingDismissed: boolean;
 
@@ -24,6 +27,9 @@ interface UniversityStoreState {
     universityName: string | null;
     facultyCode: string | null;
     facultyName: string | null;
+    major?: string | null;
+    majorKey?: string | null;
+    yearOfStudy?: number | null;
   }) => void;
   clearUniversityInfo: () => void;
   setOnboardingDismissed: (dismissed: boolean) => void;
@@ -38,6 +44,9 @@ export const useUniversityStore = create<UniversityStoreState>()(
       universityName: null,
       facultyCode: null,
       facultyName: null,
+      major: null,
+      majorKey: null,
+      yearOfStudy: null,
       onboardingDismissed: false,
 
       setUniversityMode: (enabled) => set({ isUniversityMode: enabled }),
@@ -48,6 +57,9 @@ export const useUniversityStore = create<UniversityStoreState>()(
           universityName: info.universityName,
           facultyCode: info.facultyCode,
           facultyName: info.facultyName,
+          major: info.major ?? null,
+          majorKey: info.majorKey ?? null,
+          yearOfStudy: info.yearOfStudy ?? null,
         }),
       clearUniversityInfo: () =>
         set({
@@ -55,6 +67,9 @@ export const useUniversityStore = create<UniversityStoreState>()(
           universityName: null,
           facultyCode: null,
           facultyName: null,
+          major: null,
+          majorKey: null,
+          yearOfStudy: null,
           isUniversityMode: false,
           onboardingDismissed: false,
         }),

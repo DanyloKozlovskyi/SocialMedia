@@ -59,6 +59,25 @@
   color: #fff;
 }
 
+.majorChatIcon {
+  composes: chatIcon;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+}
+
+.yearChatIcon {
+  composes: chatIcon;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+}
+
+.chatLogo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
 .chatInfo {
   flex: 1;
   min-width: 0;

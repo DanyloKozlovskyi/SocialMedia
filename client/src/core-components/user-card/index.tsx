@@ -15,9 +15,10 @@ import classes from "./user-card.module.scss";
 
 type Props = {
   user: User;
+  hideFollowButton?: boolean;
 };
 
-export default function UserCard({ user }: Props) {
+export default function UserCard({ user, hideFollowButton = false }: Props) {
   const router = useRouter();
   const { openChatWithUser } = useChatStore();
   const [isFollowing, setIsFollowing] = useState(false);
@@ -88,7 +89,7 @@ export default function UserCard({ user }: Props) {
         >
           <ChatIcon />
         </button>
-        {!isCurrentUser && (
+        {!isCurrentUser && !hideFollowButton && (
           <button
             className={`${classes.followButton} ${isFollowing ? classes.following : ""}`}
             onClick={handleFollow}

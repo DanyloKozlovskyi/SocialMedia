@@ -8,12 +8,24 @@ import React, {
 import dayjs, { Dayjs } from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
 import { CircularProgress } from "@mui/material";
-import { UserLogo } from "@core-components/user-logo";
 import { MessageBubble } from "@entities/chat/ui/MessageBubble";
 import { ChatInput } from "../ChatInput";
 import { DateSeparator } from "../DateSeparator";
 import { CalendarModal } from "../CalendarModal";
-import { Message } from "@entities/chat";
+import { ConversationInfoModal } from "../ConversationInfoModal";
+import { ConversationAvatar } from "../ConversationAvatar";
+import {
+  Message,
+  Conversation,
+  ConversationType,
+  isUniversityChatType,
+  chatApi,
+} from "@entities/chat";
+import { fetchImageWithFallbacks } from "@entities/image";
+import {
+  getUniversityLogoBasePath,
+  getFacultyLogoBasePath,
+} from "@shared/lib/universities";
 import { groupMessagesByDate } from "../../lib/groupMessagesByDate";
 import classes from "./ChatWindow.module.scss";
 
@@ -25,6 +37,7 @@ interface ChatWindowProps {
     name?: string;
     logoKey?: string;
   };
+  conversation?: Conversation;
   isLoading: boolean;
   onSendMessage: (
     content?: string,
@@ -43,6 +56,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   messages,
   currentUserId,
   otherUser,
+  conversation,
   isLoading,
   onSendMessage,
   onClose,
@@ -55,10 +69,54 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const messageRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
   const chatItems = useMemo(() => groupMessagesByDate(messages), [messages]);
   const [isCalendarOpen, setCalendarOpen] = useState(false);
+  const [isInfoModalOpen, setInfoModalOpen] = useState(false);
   const [isLayoutReady, setIsLayoutReady] = useState(false);
+  const [universityLogoUrl, setUniversityLogoUrl] = useState<string | null>(
+    null,
+  );
   const prevMessageCount = useRef(0);
   const userHasScrolled = useRef(false);
   const previousScrollHeight = useRef<number>(0);
+
+  const isUniversityType = isUniversityChatType(conversation?.type);
+  const isGroupOrCommunityChat =
+    isUniversityType || (conversation && conversation.participants.length > 1);
+
+  useEffect(() => {
+    if (!isUniversityType || !conversation?.universityDomain) {
+      setUniversityLogoUrl(null);
+      return;
+    }
+
+    let basePath: string | null = null;
+
+    if (
+      (conversation.type === ConversationType.Faculty ||
+        conversation.type === ConversationType.Major ||
+        conversation.type === ConversationType.MajorYear) &&
+      conversation.facultyCode
+    ) {
+      basePath = getFacultyLogoBasePath(
+        conversation.universityDomain,
+        conversation.facultyCode,
+      );
+    }
+
+    if (!basePath) {
+      basePath = getUniversityLogoBasePath(conversation.universityDomain);
+    }
+
+    if (basePath) {
+      fetchImageWithFallbacks(basePath, ["png", "svg", "jpg", "jpeg"])
+        .then(setUniversityLogoUrl)
+        .catch(() => setUniversityLogoUrl(null));
+    }
+  }, [
+    conversation?.type,
+    conversation?.universityDomain,
+    conversation?.facultyCode,
+    isUniversityType,
+  ]);
 
   const handleScroll = () => {
     const container = messagesAreaRef.current;
@@ -165,6 +223,23 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     });
   };
 
+  const handleLeaveConversation = async () => {
+    if (!conversation) return;
+    try {
+      await chatApi.leaveConversation(conversation.conversationId);
+      setInfoModalOpen(false);
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to leave conversation:", error);
+    }
+  };
+
+  const handleHeaderClick = () => {
+    if (isGroupOrCommunityChat && conversation) {
+      setInfoModalOpen(true);
+    }
+  };
+
   return (
     <div className={classes.chatWindow}>
       <CalendarModal
@@ -172,25 +247,45 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         onClose={() => setCalendarOpen(false)}
         onDateSelect={handleDateSelect}
       />
-      {otherUser && (
-        <div className={classes.header}>
-          <UserLogo
-            className={classes.avatar}
-            logoKey={otherUser.logoKey || null}
-            size={40}
+      {conversation && isGroupOrCommunityChat && (
+        <ConversationInfoModal
+          conversation={conversation}
+          isOpen={isInfoModalOpen}
+          onClose={() => setInfoModalOpen(false)}
+          onLeave={handleLeaveConversation}
+        />
+      )}
+      {(otherUser || isUniversityType) && (
+        <div
+          className={`${classes.header} ${isGroupOrCommunityChat ? classes.clickable : ""}`}
+          onClick={handleHeaderClick}
+        >
+          <ConversationAvatar
+            type={conversation?.type ?? ConversationType.Direct}
+            logoUrl={universityLogoUrl}
+            name={conversation?.name}
+            fallbackLogoKey={otherUser?.logoKey || null}
+            size="small"
           />
 
           <div className={classes.userInfo}>
             <div className={classes.userName}>
-              {otherUser.name || "Unknown User"}
+              {isUniversityType
+                ? conversation?.name || "Community Chat"
+                : otherUser?.name || "Unknown User"}
             </div>
-            <div className={classes.status}>Active</div>
+            <div className={classes.status}>
+              {isUniversityType ? "Community" : "Active"}
+            </div>
           </div>
 
           {onClose && (
             <button
               className={classes.closeButton}
-              onClick={onClose}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
               type="button"
             >
               <CloseIcon />
@@ -256,7 +351,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         )}
       </div>
 
-      <ChatInput onSendMessage={onSendMessage} disabled={!otherUser} />
+      <ChatInput
+        onSendMessage={onSendMessage}
+        disabled={!otherUser && !isUniversityType}
+      />
     </div>
   );
 };

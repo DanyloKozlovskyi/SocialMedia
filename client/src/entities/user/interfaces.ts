@@ -13,6 +13,9 @@ interface User extends UpdateUser {
   universityName?: string | null;
   facultyCode?: string | null;
   facultyName?: string | null;
+  major?: string | null;
+  majorKey?: string | null;
+  yearOfStudy?: number | null;
   interests?: string[];
 }
 

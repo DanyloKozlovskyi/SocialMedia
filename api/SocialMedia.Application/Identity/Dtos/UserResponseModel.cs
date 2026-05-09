@@ -8,4 +8,7 @@ public class UserResponseModel
 	public string? LogoContentType { get; set; }
 	public string? UniversityDomain { get; set; }
 	public string? FacultyCode { get; set; }
+	public string? Major { get; set; }
+	public string? MajorKey { get; set; }
+	public int? YearOfStudy { get; set; }
 }

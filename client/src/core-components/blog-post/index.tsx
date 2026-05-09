@@ -49,8 +49,6 @@ const BlogPost = ({
     facultyCode,
   } = user;
 
-  console.log(user);
-
   const [uniLogoUrl, setUniLogoUrl] = useState<string | null>(null);
   const [facultyLogoUrl, setFacultyLogoUrl] = useState<string | null>(null);
 

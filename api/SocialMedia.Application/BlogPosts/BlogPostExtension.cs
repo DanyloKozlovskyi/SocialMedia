@@ -17,7 +17,7 @@ public static class BlogPostExtension
 			MediaType = post.MediaType,
 			PostedAt = post.PostedAt,
 			UserId = post.UserId,
-			User = new UserResponseModel() { UserName = post.User?.Name, Description = post.User?.Description, LogoContentType = post.User?.LogoContentType, LogoKey = post.User?.LogoKey, Id = post.UserId, UniversityDomain = post.User?.UniversityDomain, FacultyCode = post.User?.FacultyCode },
+			User = new UserResponseModel() { UserName = post.User?.Name, Description = post.User?.Description, LogoContentType = post.User?.LogoContentType, LogoKey = post.User?.LogoKey, Id = post.UserId, UniversityDomain = post.User?.UniversityDomain, FacultyCode = post.User?.FacultyCode, Major = post.User?.Major, MajorKey = post.User?.MajorKey, YearOfStudy = post.User?.YearOfStudy },
 			LikeCount = post.Likes != null ? post.Likes.Count(x => x.IsLiked) : 0,
 			Comments = null,
 			CommentCount = post.Comments != null ? post.Comments.Count() : 0,

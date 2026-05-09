@@ -4,6 +4,7 @@ export interface UniversityInfo {
   facultyCode: string | null;
   facultyName: string | null;
   major: string | null;
+  majorKey: string | null;
   yearOfStudy: number | null;
   academicRole: string | null;
   isUniversityVerified: boolean;
@@ -18,6 +19,7 @@ export interface UniversityPeer {
   facultyCode: string | null;
   facultyName: string | null;
   major: string | null;
+  majorKey: string | null;
   yearOfStudy: number | null;
   academicRole: string | null;
 }
@@ -37,6 +39,7 @@ export interface UpdateUniversityInfoPayload {
   facultyCode?: string | null;
   facultyName?: string | null;
   major?: string | null;
+  majorKey?: string | null;
   yearOfStudy?: number | null;
   academicRole?: string | null;
 }
