@@ -18,6 +18,7 @@ import {
   getUniversityLogoBasePath,
   getFacultyLogoBasePath,
 } from "@shared/lib/universities";
+import { useUniversityTranslation } from "@shared/lib/universities/useUniversityTranslation";
 import UserCard from "@core-components/user-card";
 import Loader from "@shared/ui/loader";
 import classes from "./ConversationInfoModal.module.scss";
@@ -48,6 +49,8 @@ export const ConversationInfoModal: React.FC<ConversationInfoModalProps> = ({
   const pageSize = 20;
 
   const isUniversityType = isUniversityChatType(conversation.type);
+  const { translateConversationName } = useUniversityTranslation();
+  const translatedName = translateConversationName(conversation);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -181,7 +184,7 @@ export const ConversationInfoModal: React.FC<ConversationInfoModalProps> = ({
             size="large"
           />
           <h2 className={classes.name}>
-            {conversation.name || "Conversation"}
+            {translatedName || conversation.name || "Conversation"}
           </h2>
           <span className={classes.memberCount}>{totalCount} members</span>
         </div>

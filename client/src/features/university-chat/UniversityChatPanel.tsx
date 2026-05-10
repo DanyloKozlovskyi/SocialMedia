@@ -13,6 +13,8 @@ import {
   getUniversityLogoBasePath,
   getFacultyLogoBasePath,
 } from "@shared/lib/universities";
+import { useUniversityTranslation } from "@shared/lib/universities/useUniversityTranslation";
+import { useIntl } from "react-intl";
 import classes from "./university-chat.module.scss";
 
 const UniversityChatPanel = () => {
@@ -30,6 +32,17 @@ const UniversityChatPanel = () => {
 
   const [uniLogoUrl, setUniLogoUrl] = useState<string | null>(null);
   const [facultyLogoUrl, setFacultyLogoUrl] = useState<string | null>(null);
+  const { translateUniversity, translateFaculty, translateMajor } =
+    useUniversityTranslation();
+
+  const translatedUniName = translateUniversity(universityDomain);
+  const translatedFacultyName = translateFaculty(universityDomain, facultyCode);
+  const translatedMajor = translateMajor(majorKey);
+  const intl = useIntl();
+  const yearLabel = intl.formatMessage({
+    id: "chat.year",
+    defaultMessage: "Year",
+  });
 
   useEffect(() => {
     if (!universityDomain) return;
@@ -126,7 +139,7 @@ const UniversityChatPanel = () => {
         </div>
         <div className={classes.chatInfo}>
           <div className={classes.chatName}>
-            {universityName ?? universityDomain}
+            {translatedUniName || universityDomain}
           </div>
           <div className={classes.chatDesc}>University-wide chat</div>
         </div>
@@ -147,7 +160,9 @@ const UniversityChatPanel = () => {
             )}
           </div>
           <div className={classes.chatInfo}>
-            <div className={classes.chatName}>{facultyName ?? facultyCode}</div>
+            <div className={classes.chatName}>
+              {translatedFacultyName || facultyCode}
+            </div>
             <div className={classes.chatDesc}>Faculty chat</div>
           </div>
           <ChevronRightIcon className={classes.joinArrow} fontSize="inherit" />
@@ -160,7 +175,7 @@ const UniversityChatPanel = () => {
             <MenuBookIcon fontSize="inherit" />
           </div>
           <div className={classes.chatInfo}>
-            <div className={classes.chatName}>{major}</div>
+            <div className={classes.chatName}>{translatedMajor || major}</div>
             <div className={classes.chatDesc}>Major chat</div>
           </div>
           <ChevronRightIcon className={classes.joinArrow} fontSize="inherit" />
@@ -174,7 +189,7 @@ const UniversityChatPanel = () => {
           </div>
           <div className={classes.chatInfo}>
             <div className={classes.chatName}>
-              {major} – Year {yearOfStudy}
+              {translatedMajor || major} – {yearLabel} {yearOfStudy}
             </div>
             <div className={classes.chatDesc}>Classmates chat</div>
           </div>

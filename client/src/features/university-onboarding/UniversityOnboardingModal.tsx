@@ -10,6 +10,7 @@ import {
   UNIVERSITIES,
 } from "@shared/lib/universities";
 import type { FacultyRegistry } from "@shared/lib/universities";
+import { useUniversityTranslation } from "@shared/lib/universities/useUniversityTranslation";
 import {
   useUniversityStore,
   updateUniversityInfo,
@@ -37,6 +38,8 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
 
   const uniDomain = getUniversityDomain(email);
   const university = uniDomain ? UNIVERSITIES[uniDomain] : null;
+  const { translateUniversity, translateFaculty, translateMajor } =
+    useUniversityTranslation();
 
   const [step, setStep] = useState<Step>("confirm");
   const [uniLogoUrl, setUniLogoUrl] = useState<string | null>(null);
@@ -234,7 +237,9 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
               ) : (
                 <div className={classes.uniLogo} />
               )}
-              <div className={classes.uniName}>{university.name}</div>
+              <div className={classes.uniName}>
+                {translateUniversity(uniDomain) || university.name}
+              </div>
             </div>
             <div className={classes.question}>
               Are you associated with this university?
@@ -285,7 +290,9 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
                     <div className={classes.facultyLogo} />
                   )}
                   <div className={classes.facultyInfo}>
-                    <div className={classes.facultyName}>{faculty.name}</div>
+                    <div className={classes.facultyName}>
+                      {translateFaculty(uniDomain, code) || faculty.name}
+                    </div>
                     <div className={classes.facultyCode}>{code}</div>
                   </div>
                 </div>
@@ -307,7 +314,10 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
               ) : (
                 <div className={classes.uniLogo} />
               )}
-              <div className={classes.uniName}>{selectedFaculty.name}</div>
+              <div className={classes.uniName}>
+                {translateFaculty(uniDomain, selectedFacultyCode) ||
+                  selectedFaculty.name}
+              </div>
             </div>
 
             <div className={classes.formGroup}>
@@ -328,9 +338,9 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
                 }}
               >
                 <option value="">Select major…</option>
-                {selectedFaculty.majors.map((m) => (
+                {selectedFaculty.majors.map((m, idx) => (
                   <option key={m} value={m}>
-                    {m}
+                    {translateMajor(selectedFaculty.majorKeys[idx]) || m}
                   </option>
                 ))}
               </select>

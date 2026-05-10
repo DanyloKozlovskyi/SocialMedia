@@ -5,6 +5,7 @@ import {
   getUniversityLogoBasePath,
   getFacultyLogoBasePath,
 } from "@shared/lib/universities";
+import { useUniversityTranslation } from "@shared/lib/universities/useUniversityTranslation";
 import {
   Conversation,
   ConversationType,
@@ -31,6 +32,7 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
   const [contextMenuPos, setContextMenuPos] = useState({ x: 0, y: 0 });
 
   const isUniversityType = isUniversityChatType(conversation.type);
+  const { translateConversationName } = useUniversityTranslation();
 
   useEffect(() => {
     // Major and MajorYear use icons, not logos
@@ -93,8 +95,9 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
   const isGroupChat = conversation.participants.length > 1 || isUniversityType;
   const otherParticipant = conversation.participants[0];
 
+  const translatedName = translateConversationName(conversation);
   const displayName = isUniversityType
-    ? conversation.name || "Community Chat"
+    ? translatedName || conversation.name || "Community Chat"
     : isGroupChat
       ? conversation.name || `Group (${conversation.participants.length + 1})`
       : otherParticipant?.name || "Unknown User";

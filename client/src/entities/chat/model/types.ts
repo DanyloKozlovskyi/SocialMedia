@@ -41,6 +41,7 @@ export interface Conversation {
   universityDomain?: string;
   facultyCode?: string;
   major?: string;
+  majorKey?: string;
   yearOfStudy?: number;
   lastMessage?: Message;
   participants: ConversationParticipant[];

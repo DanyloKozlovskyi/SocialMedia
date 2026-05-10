@@ -20,6 +20,7 @@ import {
   getUniversityLogoBasePath,
   getFacultyLogoBasePath,
 } from "@shared/lib/universities";
+import { useUniversityTranslation } from "@shared/lib/universities/useUniversityTranslation";
 import { UniversityOnboardingModal } from "@features/university-onboarding";
 import { fetchImageWithFallbacks } from "@entities/image";
 import { updateInterests } from "@entities/university";
@@ -175,6 +176,9 @@ const Account = () => {
 
   // Load faculty logo
   const { facultyCode } = useAccountStore();
+  const { translateUniversity, translateFaculty } = useUniversityTranslation();
+  const translatedUniName = translateUniversity(universityDomain);
+  const translatedFacultyName = translateFaculty(universityDomain, facultyCode);
   useEffect(() => {
     if (!universityDomain || !facultyCode) {
       setFacultyLogoUrl(null);
@@ -317,7 +321,7 @@ const Account = () => {
                     {uniLogoUrl ? (
                       <img
                         src={uniLogoUrl}
-                        alt={universityName}
+                        alt={translatedUniName || universityName}
                         className={classes.uniCardLogo}
                       />
                     ) : (
@@ -330,7 +334,7 @@ const Account = () => {
                     <div className={classes.uniCardInfo}>
                       <div className={classes.uniCardLabel}>University</div>
                       <div className={classes.uniCardName}>
-                        {universityName}
+                        {translatedUniName || universityName}
                       </div>
                     </div>
                   </div>
@@ -340,7 +344,7 @@ const Account = () => {
                       {facultyLogoUrl ? (
                         <img
                           src={facultyLogoUrl}
-                          alt={facultyName}
+                          alt={translatedFacultyName || facultyName}
                           className={classes.uniCardLogo}
                         />
                       ) : (
@@ -352,7 +356,9 @@ const Account = () => {
                       )}
                       <div className={classes.uniCardInfo}>
                         <div className={classes.uniCardLabel}>Faculty</div>
-                        <div className={classes.uniCardName}>{facultyName}</div>
+                        <div className={classes.uniCardName}>
+                          {translatedFacultyName || facultyName}
+                        </div>
                       </div>
                     </div>
                   )}

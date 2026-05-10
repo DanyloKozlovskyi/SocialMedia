@@ -26,6 +26,7 @@ import {
   getUniversityLogoBasePath,
   getFacultyLogoBasePath,
 } from "@shared/lib/universities";
+import { useUniversityTranslation } from "@shared/lib/universities/useUniversityTranslation";
 import { groupMessagesByDate } from "../../lib/groupMessagesByDate";
 import classes from "./ChatWindow.module.scss";
 
@@ -81,6 +82,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const isUniversityType = isUniversityChatType(conversation?.type);
   const isGroupOrCommunityChat =
     isUniversityType || (conversation && conversation.participants.length > 1);
+  const { translateConversationName } = useUniversityTranslation();
+  const translatedConversationName = conversation
+    ? translateConversationName(conversation)
+    : "";
 
   useEffect(() => {
     if (!isUniversityType || !conversation?.universityDomain) {
@@ -271,7 +276,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <div className={classes.userInfo}>
             <div className={classes.userName}>
               {isUniversityType
-                ? conversation?.name || "Community Chat"
+                ? translatedConversationName ||
+                  conversation?.name ||
+                  "Community Chat"
                 : otherUser?.name || "Unknown User"}
             </div>
             <div className={classes.status}>
@@ -331,6 +338,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   );
                 }
                 const message = item as Message;
+                const nextItem = chatItems[index + 1];
+                const isLastInGroup =
+                  !nextItem ||
+                  ("type" in nextItem && nextItem.type === "date-separator") ||
+                  (nextItem as Message).senderId !== message.senderId;
+
                 return (
                   <div
                     key={message.id}
@@ -342,6 +355,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                       message={message}
                       isOwn={message.senderId === currentUserId}
                       currentUserId={currentUserId}
+                      showAvatar={isLastInGroup}
                     />
                   </div>
                 );
