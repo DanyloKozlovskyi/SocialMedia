@@ -168,7 +168,6 @@ public class MessagesController : ControllerBase
 		{
 			return Unauthorized();
 		}
-
 		try
 		{
 			await _chatService.LeaveConversation(conversationId, currentUserId);
