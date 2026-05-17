@@ -64,7 +64,6 @@ public class MessagesController : ControllerBase
 		{
 			return Unauthorized();
 		}
-
 		try
 		{
 			var result = await _chatService.GetConversationParticipants(conversationId, currentUserId, page, pageSize, search);
