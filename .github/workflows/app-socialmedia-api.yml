@@ -37,6 +37,25 @@ jobs:
       - name: Publish
         run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
 
+      - name: Install dotnet-ef
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Apply Entity Framework migrations
+        env:
+          ConnectionStrings__Default: ${{ secrets.DB_CONNECTION_STRING }}
+        run: |
+          for i in {1..5}; do
+            if dotnet ef database update --project api/SocialMedia.Infrastructure --startup-project api/SocialMedia.WebApi; then
+              break
+            fi
+            if [ $i -eq 5 ]; then
+              echo "Failed to update database after 5 attempts."
+              exit 1
+            fi
+            echo "Attempt $i failed! Retrying in 15s..."
+            sleep 15
+          done
+
       - name: Publish Artifacts
         uses: actions/upload-artifact@v4
         with:
