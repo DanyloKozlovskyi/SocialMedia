@@ -7,12 +7,14 @@ interface ConversationListProps {
   conversations: Conversation[];
   activeConversationId: string | null;
   onSelectConversation: (conversationId: string) => void;
+  onLeaveConversation?: (conversationId: string) => void;
 }
 
 export const ConversationList: React.FC<ConversationListProps> = ({
   conversations,
   activeConversationId,
   onSelectConversation,
+  onLeaveConversation,
 }) => {
   return (
     <div className={classes.conversationList}>
@@ -28,6 +30,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
               conversation={conversation}
               isActive={conversation.conversationId === activeConversationId}
               onClick={() => onSelectConversation(conversation.conversationId)}
+              onLeave={onLeaveConversation}
             />
           ))
         )}

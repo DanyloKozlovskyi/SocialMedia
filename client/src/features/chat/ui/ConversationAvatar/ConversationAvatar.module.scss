@@ -1,0 +1,43 @@
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+
+  &.small {
+    width: 40px;
+    height: 40px;
+    margin-right: 12px;
+  }
+
+  &.large {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+.iconAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+
+  &.small svg {
+    font-size: 20px;
+  }
+
+  &.large svg {
+    font-size: 40px;
+  }
+}
+
+.majorIcon {
+  background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+}
+
+.yearIcon {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+}
+
+.defaultIcon {
+  background: linear-gradient(135deg, #607d8b 0%, #455a64 100%);
+}

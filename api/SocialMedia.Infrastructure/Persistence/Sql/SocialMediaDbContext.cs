@@ -29,6 +29,7 @@ namespace SocialMedia.Infrastructure.Persistence.Sql
 		{
 			base.OnModelCreating(modelBuilder);
 
+			modelBuilder.ApplyConfiguration(new ApplicationUserConfiguration());
 			modelBuilder.ApplyConfiguration(new BlogPostConfiguration());
 			modelBuilder.ApplyConfiguration(new MessageConfiguration());
 			modelBuilder.ApplyConfiguration(new ConversationConfiguration());

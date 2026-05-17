@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import Input from "@shared/ui/inputs/input";
 import Button from "@shared/ui/buttons/button";
 import { login, saveTokens } from "@entities/auth";
+import { getPersonalInfo } from "@entities/user";
+import { useUniversityStore } from "@entities/university";
+import { setCookie } from "@shared/api";
 import classes from "./sign-in.module.scss";
 
 const SignInPage = () => {
@@ -13,6 +16,8 @@ const SignInPage = () => {
     email: "",
     password: "",
   });
+
+  const { setUniversityInfo } = useUniversityStore();
 
   const handleChange = (field: string, value: string) => {
     setAccount((prev) => ({
@@ -26,6 +31,29 @@ const SignInPage = () => {
     try {
       const response = await login(account);
       saveTokens(response);
+
+      // Save email for university detection
+      const email = response.email || account.email;
+      setCookie("user_email", email);
+
+      // Fetch personal info to restore university state from database
+      try {
+        const userInfo = await getPersonalInfo();
+        if (userInfo && userInfo.universityDomain) {
+          setUniversityInfo({
+            universityDomain: userInfo.universityDomain ?? null,
+            universityName: userInfo.universityName ?? null,
+            facultyCode: userInfo.facultyCode ?? null,
+            facultyName: userInfo.facultyName ?? null,
+            major: userInfo.major ?? null,
+            majorKey: userInfo.majorKey ?? null,
+            yearOfStudy: userInfo.yearOfStudy ?? null,
+          });
+        }
+      } catch (err) {
+        console.error("Could not fetch personal info after login", err);
+      }
+
       router.push("/home");
     } catch (err) {
       console.error("Sign-in failed:", err);

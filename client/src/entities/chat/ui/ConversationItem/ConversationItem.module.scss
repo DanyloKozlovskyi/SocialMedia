@@ -13,6 +13,10 @@
   &.active {
     background-color: #e3f2fd;
   }
+
+  &.contextActive {
+    background-color: #f1f1f1;
+  }
 }
 
 .avatar {
@@ -62,4 +66,53 @@
   font-size: 12px;
   font-weight: 600;
   margin-left: 8px;
+}
+
+.iconAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.majorIcon {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.yearIcon {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.contextMenu {
+  position: fixed;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  min-width: 200px;
+  padding: 8px 0;
+  transform: translateX(4px);
+}
+
+.contextMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 15px;
+  color: #e53935;
+  transition: background-color 0.15s;
+  text-align: left;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+
+  svg {
+    color: #e53935;
+  }
 }

@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { getUserId } from "@entities/user/helpers";
+import { chatApi } from "@entities/chat";
 import { useChatStore } from "@features/chat/model/store";
 import { ConversationList } from "@features/chat/ui/ConversationList";
 import { ChatWindow } from "@features/chat/ui/ChatWindow";
@@ -11,6 +13,8 @@ import classes from "./chat.module.scss";
 
 export default function ChatPage() {
   const [userId, setUserId] = useState<string>("");
+  const searchParams = useSearchParams();
+  const conversationParam = searchParams.get("conversation");
 
   const {
     conversations,
@@ -34,6 +38,12 @@ export default function ChatPage() {
     loadAuthData();
   }, []);
 
+  useEffect(() => {
+    if (conversationParam && conversations.length > 0) {
+      selectConversation(conversationParam);
+    }
+  }, [conversationParam, conversations.length, selectConversation]);
+
   const handleSelectConversation = (conversationId: string) => {
     selectConversation(conversationId);
   };
@@ -52,6 +62,15 @@ export default function ChatPage() {
         mediaContentType,
         mediaType,
       );
+    }
+  };
+
+  const handleLeaveConversation = async (conversationId: string) => {
+    try {
+      await chatApi.leaveConversation(conversationId);
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to leave conversation:", error);
     }
   };
 
@@ -77,6 +96,7 @@ export default function ChatPage() {
           conversations={conversations}
           activeConversationId={activeConversationId}
           onSelectConversation={handleSelectConversation}
+          onLeaveConversation={handleLeaveConversation}
         />
       </div>
 
@@ -86,6 +106,7 @@ export default function ChatPage() {
             key={activeConversationId}
             messages={messages}
             currentUserId={userId}
+            conversation={activeConversation}
             otherUser={
               !isGroupChat && otherParticipant
                 ? {
@@ -103,10 +124,9 @@ export default function ChatPage() {
             }
             isLoading={isLoading}
             onSendMessage={handleSendMessage}
-            
             loadMoreMessages={loadMoreMessages}
             hasMore={hasMore}
-            isFetchingOlder={isFetchingOlder} 
+            isFetchingOlder={isFetchingOlder}
           />
         ) : (
           <div className={classes.emptyState}>

@@ -15,6 +15,18 @@ import Separator from "@shared/ui/separator";
 import BlogPost from "@core-components/blog-post";
 import { fetchUserPosts } from "@entities/blog-post/helpers";
 import NoResultsFound from "@shared/ui/no-results-found";
+import {
+  getUniversityDomain,
+  getUniversityLogoBasePath,
+  getFacultyLogoBasePath,
+} from "@shared/lib/universities";
+import { useUniversityTranslation } from "@shared/lib/universities/useUniversityTranslation";
+import { UniversityOnboardingModal } from "@features/university-onboarding";
+import { fetchImageWithFallbacks } from "@entities/image";
+import { updateInterests } from "@entities/university";
+import SchoolIcon from "@mui/icons-material/School";
+import EditIcon from "@mui/icons-material/Edit";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import SeparatorLayout from "../layout/separator-layout";
 import { useAccountStore } from "./useAccountStore";
 import classes from "./account.module.scss";
@@ -41,7 +53,22 @@ const Account = () => {
     setDescription,
     name,
     setName,
+    email,
+    universityDomain,
+    universityName,
+    facultyName,
+    setAccountInfo,
+    interests,
+    setInterests,
   } = useAccountStore();
+
+  const [showUniModal, setShowUniModal] = useState(false);
+  const [uniLogoUrl, setUniLogoUrl] = useState<string | null>(null);
+  const [facultyLogoUrl, setFacultyLogoUrl] = useState<string | null>(null);
+  const [editingInterests, setEditingInterests] = useState<string[]>([]);
+  const [isEditingInterests, setIsEditingInterests] = useState(false);
+  const [customTagInput, setCustomTagInput] = useState("");
+  const [isSavingInterests, setIsSavingInterests] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [followStatus, setFollowStatus] = useState<FollowStatus | null>(null);
@@ -65,12 +92,104 @@ const Account = () => {
       setLogoKey(info.logoKey);
       setName(info.name);
       setDescription(info.description ?? "");
+      setAccountInfo({
+        email: info.email,
+        universityDomain: info.universityDomain,
+        universityName: info.universityName,
+        facultyCode: info.facultyCode,
+        facultyName: info.facultyName,
+      });
+      setInterests(info.interests ?? []);
     };
 
-    if (!logoKey && !name && !description) {
+    if (!logoKey && !name && !description && !email) {
       fetchInfo();
     }
-  }, [logoKey, name, description, setLogoKey, setName, setDescription]);
+  }, [
+    logoKey,
+    name,
+    description,
+    email,
+    setLogoKey,
+    setName,
+    setDescription,
+    setAccountInfo,
+  ]);
+
+  // Load university logo
+  useEffect(() => {
+    if (!universityDomain) {
+      setUniLogoUrl(null);
+      return;
+    }
+    const base = getUniversityLogoBasePath(universityDomain);
+    if (!base) return;
+    fetchImageWithFallbacks(base, ["png", "svg", "jpg", "jpeg"])
+      .then(setUniLogoUrl)
+      .catch(() => setUniLogoUrl(null));
+  }, [universityDomain]);
+
+  // Interest editing handlers
+  const handleStartEditInterests = () => {
+    setEditingInterests([...interests]);
+    setIsEditingInterests(true);
+  };
+
+  const handleCancelEditInterests = () => {
+    setIsEditingInterests(false);
+    setEditingInterests([]);
+    setCustomTagInput("");
+  };
+
+  const handleRemoveInterest = (tag: string) => {
+    setEditingInterests((prev) => prev.filter((t) => t !== tag));
+  };
+
+  const handleAddCustomTag = () => {
+    const tag = customTagInput.trim().toLowerCase();
+    if (tag && !editingInterests.includes(tag)) {
+      setEditingInterests((prev) => [...prev, tag]);
+    }
+    setCustomTagInput("");
+  };
+
+  const handleCustomTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddCustomTag();
+    }
+  };
+
+  const handleSaveInterests = async () => {
+    setIsSavingInterests(true);
+    try {
+      await updateInterests(editingInterests);
+      setInterests(editingInterests);
+      setIsEditingInterests(false);
+      setCustomTagInput("");
+    } catch (err) {
+      console.error("Failed to save interests:", err);
+    } finally {
+      setIsSavingInterests(false);
+    }
+  };
+
+  // Load faculty logo
+  const { facultyCode } = useAccountStore();
+  const { translateUniversity, translateFaculty } = useUniversityTranslation();
+  const translatedUniName = translateUniversity(universityDomain);
+  const translatedFacultyName = translateFaculty(universityDomain, facultyCode);
+  useEffect(() => {
+    if (!universityDomain || !facultyCode) {
+      setFacultyLogoUrl(null);
+      return;
+    }
+    const base = getFacultyLogoBasePath(universityDomain, facultyCode);
+    if (!base) return;
+    fetchImageWithFallbacks(base, ["png", "svg", "jpg", "jpeg"])
+      .then(setFacultyLogoUrl)
+      .catch(() => setFacultyLogoUrl(null));
+  }, [universityDomain, facultyCode]);
 
   useEffect(() => {
     const loadFollowStatus = async () => {
@@ -180,7 +299,189 @@ const Account = () => {
             description={description}
             name={name}
           />
+
+          {email && getUniversityDomain(email) && (
+            <div className={classes.universitySection}>
+              <div className={classes.uniSectionHeader}>
+                <SchoolIcon className={classes.uniSectionIcon} />
+                <span>University Affiliation</span>
+                <button
+                  className={classes.uniEditBtn}
+                  onClick={() => setShowUniModal(true)}
+                  type="button"
+                >
+                  <EditIcon style={{ fontSize: 16 }} />
+                  {universityName ? "Edit" : "Set up"}
+                </button>
+              </div>
+
+              {universityName ? (
+                <div className={classes.uniCards}>
+                  <div className={classes.uniCard}>
+                    {uniLogoUrl ? (
+                      <img
+                        src={uniLogoUrl}
+                        alt={translatedUniName || universityName}
+                        className={classes.uniCardLogo}
+                      />
+                    ) : (
+                      <div className={classes.uniCardLogoPlaceholder}>
+                        <SchoolIcon
+                          style={{ fontSize: 20, color: "#7c8db0" }}
+                        />
+                      </div>
+                    )}
+                    <div className={classes.uniCardInfo}>
+                      <div className={classes.uniCardLabel}>University</div>
+                      <div className={classes.uniCardName}>
+                        {translatedUniName || universityName}
+                      </div>
+                    </div>
+                  </div>
+
+                  {facultyName && (
+                    <div className={classes.uniCard}>
+                      {facultyLogoUrl ? (
+                        <img
+                          src={facultyLogoUrl}
+                          alt={translatedFacultyName || facultyName}
+                          className={classes.uniCardLogo}
+                        />
+                      ) : (
+                        <div className={classes.uniCardLogoPlaceholder}>
+                          <SchoolIcon
+                            style={{ fontSize: 20, color: "#7c8db0" }}
+                          />
+                        </div>
+                      )}
+                      <div className={classes.uniCardInfo}>
+                        <div className={classes.uniCardLabel}>Faculty</div>
+                        <div className={classes.uniCardName}>
+                          {translatedFacultyName || facultyName}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className={classes.uniNotSet}>
+                  Not configured yet. Click Edit to set up your university.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* My Interests Section */}
+          <div className={classes.interestsSection}>
+            <div className={classes.interestsSectionHeader}>
+              <LocalOfferIcon className={classes.interestsSectionIcon} />
+              <span>My Interests</span>
+              {!isEditingInterests && (
+                <button
+                  className={classes.interestsEditBtn}
+                  onClick={handleStartEditInterests}
+                  type="button"
+                >
+                  <EditIcon style={{ fontSize: 16 }} />
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {isEditingInterests ? (
+              <div className={classes.interestsEditMode}>
+                <div className={classes.interestChips}>
+                  {editingInterests.map((tag) => (
+                    <span key={tag} className={classes.interestChip}>
+                      {tag}
+                      <button
+                        type="button"
+                        className={classes.chipRemove}
+                        onClick={() => handleRemoveInterest(tag)}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                  {editingInterests.length === 0 && (
+                    <span className={classes.noInterests}>
+                      No interests added yet
+                    </span>
+                  )}
+                </div>
+                <div className={classes.addTagRow}>
+                  <input
+                    type="text"
+                    className={classes.tagInput}
+                    placeholder="Add custom tag..."
+                    value={customTagInput}
+                    onChange={(e) => setCustomTagInput(e.target.value)}
+                    onKeyDown={handleCustomTagKeyDown}
+                  />
+                  <button
+                    type="button"
+                    className={classes.addTagBtn}
+                    onClick={handleAddCustomTag}
+                    disabled={!customTagInput.trim()}
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className={classes.interestsActions}>
+                  <button
+                    type="button"
+                    className={classes.cancelBtn}
+                    onClick={handleCancelEditInterests}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className={classes.saveBtn}
+                    onClick={handleSaveInterests}
+                    disabled={isSavingInterests}
+                  >
+                    {isSavingInterests ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className={classes.interestChips}>
+                {interests.length > 0 ? (
+                  interests.map((tag) => (
+                    <span key={tag} className={classes.interestChipReadonly}>
+                      {tag}
+                    </span>
+                  ))
+                ) : (
+                  <span className={classes.noInterests}>
+                    No interests set. Click Edit to add your interests.
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
+
+        {showUniModal && email && (
+          <UniversityOnboardingModal
+            email={email}
+            forceShow={true}
+            onComplete={() => {
+              setShowUniModal(false);
+              getPersonalInfo().then((info) => {
+                setAccountInfo({
+                  email: info.email,
+                  universityDomain: info.universityDomain,
+                  universityName: info.universityName,
+                  facultyCode: info.facultyCode,
+                  facultyName: info.facultyName,
+                });
+                setInterests(info.interests ?? []);
+              });
+            }}
+          />
+        )}
 
         <div style={{ overflow: "auto", height: "100%" }}>
           {posts.map((item, idx) => {

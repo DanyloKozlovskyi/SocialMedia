@@ -52,6 +52,30 @@ public class MessagesController : ControllerBase
 		}
 	}
 
+	[HttpGet("conversation/{conversationId}/participants")]
+	public async Task<IActionResult> GetConversationParticipants(
+		Guid conversationId, 
+		[FromQuery] int page = 1, 
+		[FromQuery] int pageSize = 20,
+		[FromQuery] string? search = null)
+	{
+		var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		if (currentUserIdClaim == null || !Guid.TryParse(currentUserIdClaim, out var currentUserId))
+		{
+			return Unauthorized();
+		}
+
+		try
+		{
+			var result = await _chatService.GetConversationParticipants(conversationId, currentUserId, page, pageSize, search);
+			return Ok(result);
+		}
+		catch (UnauthorizedAccessException)
+		{
+			return Forbid();
+		}
+	}
+
 	[HttpPost("conversation/start")]
 	public async Task<IActionResult> StartConversation([FromBody] Guid otherUserId)
 	{
@@ -84,4 +108,105 @@ public class MessagesController : ControllerBase
 			return BadRequest(ex.Message);
 		}
 	}
+
+	[HttpPost("conversation/university")]
+	public async Task<IActionResult> JoinUniversityChat([FromBody] JoinUniversityChatRequest request)
+	{
+		var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		if (currentUserIdClaim == null || !Guid.TryParse(currentUserIdClaim, out var currentUserId))
+		{
+			return Unauthorized();
+		}
+
+		var conversationId = await _chatService.JoinUniversityChat(currentUserId, request.UniversityDomain, request.UniversityName);
+		return Ok(new { ConversationId = conversationId });
+	}
+
+	[HttpPost("conversation/faculty")]
+	public async Task<IActionResult> JoinFacultyChat([FromBody] JoinFacultyChatRequest request)
+	{
+		var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		if (currentUserIdClaim == null || !Guid.TryParse(currentUserIdClaim, out var currentUserId))
+		{
+			return Unauthorized();
+		}
+
+		var conversationId = await _chatService.JoinFacultyChat(currentUserId, request.UniversityDomain, request.FacultyCode, request.FacultyName);
+		return Ok(new { ConversationId = conversationId });
+	}
+
+	[HttpPost("conversation/major")]
+	public async Task<IActionResult> JoinMajorChat([FromBody] JoinMajorChatRequest request)
+	{
+		var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		if (currentUserIdClaim == null || !Guid.TryParse(currentUserIdClaim, out var currentUserId))
+		{
+			return Unauthorized();
+		}
+
+		var conversationId = await _chatService.JoinMajorChat(currentUserId, request.UniversityDomain, request.FacultyCode, request.MajorKey, request.Major);
+		return Ok(new { ConversationId = conversationId });
+	}
+
+	[HttpPost("conversation/major-year")]
+	public async Task<IActionResult> JoinMajorYearChat([FromBody] JoinMajorYearChatRequest request)
+	{
+		var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		if (currentUserIdClaim == null || !Guid.TryParse(currentUserIdClaim, out var currentUserId))
+		{
+			return Unauthorized();
+		}
+
+		var conversationId = await _chatService.JoinMajorYearChat(currentUserId, request.UniversityDomain, request.FacultyCode, request.MajorKey, request.Major, request.YearOfStudy);
+		return Ok(new { ConversationId = conversationId });
+	}
+
+	[HttpPost("conversation/{conversationId}/leave")]
+	public async Task<IActionResult> LeaveConversation(Guid conversationId)
+	{
+		var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		if (currentUserIdClaim == null || !Guid.TryParse(currentUserIdClaim, out var currentUserId))
+		{
+			return Unauthorized();
+		}
+
+		try
+		{
+			await _chatService.LeaveConversation(conversationId, currentUserId);
+			return Ok();
+		}
+		catch (UnauthorizedAccessException)
+		{
+			return Forbid();
+		}
+	}
+
+	[HttpDelete("conversation/{conversationId}")]
+	public async Task<IActionResult> DeleteConversation(Guid conversationId)
+	{
+		var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		if (currentUserIdClaim == null || !Guid.TryParse(currentUserIdClaim, out var currentUserId))
+		{
+			return Unauthorized();
+		}
+
+		try
+		{
+			await _chatService.DeleteConversation(conversationId, currentUserId);
+			return Ok();
+		}
+		catch (UnauthorizedAccessException)
+		{
+			return Forbid();
+		}
+		catch (KeyNotFoundException)
+		{
+			return NotFound();
+		}
+	}
 }
+
+public record JoinUniversityChatRequest(string UniversityDomain, string UniversityName);
+public record JoinFacultyChatRequest(string UniversityDomain, string FacultyCode, string FacultyName);
+public record JoinMajorChatRequest(string UniversityDomain, string FacultyCode, string MajorKey, string Major);
+public record JoinMajorYearChatRequest(string UniversityDomain, string FacultyCode, string MajorKey, string Major, int YearOfStudy);

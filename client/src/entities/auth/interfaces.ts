@@ -12,6 +12,7 @@ interface Register extends Login {
 interface AuthenticationResponse {
   token: string;
   refreshToken: string;
+  email: string;
 }
 
 export type { Login, Register, AuthenticationResponse };

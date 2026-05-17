@@ -18,11 +18,25 @@ type AccountStore = {
   logoKey: string | null;
   description: string;
   name: string;
+  email?: string;
+  universityDomain?: string | null;
+  universityName?: string | null;
+  facultyCode?: string | null;
+  facultyName?: string | null;
+  interests: string[];
 
   setUserId: (id: string) => void;
+  setInterests: (interests: string[]) => void;
   setLogoKey: (l: string | null) => void;
   setDescription: (d: string) => void;
   setName: (n: string) => void;
+  setAccountInfo: (info: {
+    email?: string;
+    universityDomain?: string | null;
+    universityName?: string | null;
+    facultyCode?: string | null;
+    facultyName?: string | null;
+  }) => void;
 };
 
 export const useAccountStore = create<AccountStore>((set) => ({
@@ -44,8 +58,17 @@ export const useAccountStore = create<AccountStore>((set) => ({
   description: "",
   name: "",
 
+  email: undefined,
+  universityDomain: null,
+  universityName: null,
+  facultyCode: null,
+  facultyName: null,
+  interests: [],
+
   setUserId: (id) => set({ userId: id }),
+  setInterests: (interests) => set({ interests }),
   setLogoKey: (l) => set({ logoKey: l }),
   setDescription: (d) => set({ description: d }),
   setName: (n) => set({ name: n }),
+  setAccountInfo: (info) => set(info),
 }));

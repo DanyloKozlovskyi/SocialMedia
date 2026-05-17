@@ -10,11 +10,13 @@ interface MessageBubbleProps {
   message: Message;
   isOwn: boolean;
   currentUserId: string;
+  showAvatar?: boolean;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
   message,
   isOwn,
+  showAvatar = true,
 }) => {
   const { mediaSrc } = useMedia(
     message.mediaKey || null,
@@ -30,12 +32,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     <div
       className={`${classes.messageContainer} ${isOwn ? classes.outgoing : classes.incoming}`}
     >
-      {!isOwn && message.sender?.logoKey && (
-        <UserLogo
-          className={classes.avatar}
-          logoKey={message.sender.logoKey}
-          size={32}
-        />
+      {!isOwn && (
+        <div
+          className={classes.avatarContainer}
+          title={message.sender?.name || ""}
+        >
+          {showAvatar && (
+            <UserLogo
+              className={classes.avatar}
+              logoKey={message.sender?.logoKey || null}
+              size={32}
+            />
+          )}
+        </div>
       )}
 
       <div

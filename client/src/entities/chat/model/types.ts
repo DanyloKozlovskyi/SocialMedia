@@ -24,12 +24,45 @@ export interface ConversationParticipant {
   logoContentType?: string;
 }
 
+// Backend sends numeric enum values
+export enum ConversationType {
+  Direct = 0,
+  Group = 1,
+  University = 2,
+  Faculty = 3,
+  Major = 4,
+  MajorYear = 5,
+}
+
 export interface Conversation {
   conversationId: string;
   name?: string;
+  type?: ConversationType;
+  universityDomain?: string;
+  facultyCode?: string;
+  major?: string;
+  majorKey?: string;
+  yearOfStudy?: number;
   lastMessage?: Message;
   participants: ConversationParticipant[];
   unreadCount: number;
+}
+
+export const isUniversityChatType = (type?: ConversationType): boolean => {
+  return (
+    type === ConversationType.University ||
+    type === ConversationType.Faculty ||
+    type === ConversationType.Major ||
+    type === ConversationType.MajorYear
+  );
+};
+
+export interface ParticipantsPage {
+  participants: ConversationParticipant[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
 }
 
 export interface ChatState {

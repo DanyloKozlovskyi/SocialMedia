@@ -1,0 +1,1 @@
+export { UniversityChatPanel } from "./UniversityChatPanel";

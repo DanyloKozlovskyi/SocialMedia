@@ -1,3 +1,3 @@
-import { fetchImageAsBlobURL, getUploadUrl, saveFileIntoBlob, getUploadLogoUrl } from "./apis";
+import { fetchImageAsBlobURL, getUploadUrl, saveFileIntoBlob, getUploadLogoUrl, fetchImageWithFallbacks } from "./apis";
 
-export { fetchImageAsBlobURL, getUploadUrl, saveFileIntoBlob, getUploadLogoUrl };
+export { fetchImageAsBlobURL, getUploadUrl, saveFileIntoBlob, getUploadLogoUrl, fetchImageWithFallbacks };

@@ -1,12 +1,15 @@
 "use client";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { fetchPosts } from "./helpers";
+import { fetchPosts, fetchUniversityPosts } from "./helpers";
 import BlogPost from "@core-components/blog-post";
 import NoResultsFound from "@shared/ui/no-results-found";
 import SeparatorLayout from "@app/layout/separator-layout";
 import Loader from "@shared/ui/loader";
 import Separator from "@shared/ui/separator";
 import { useHomeStore } from "./useHomeStore";
+import { useUniversityStore } from "@entities/university";
+import { UniversityModeToggle } from "@features/university-mode";
+import { UniversityChatPanel } from "@features/university-chat";
 import classes from "./home.module.scss";
 
 const Home = () => {
@@ -16,7 +19,28 @@ const Home = () => {
   const [hasMore, setHasMore] = useState(true);
   const observer = useRef<IntersectionObserver | null>(null);
 
+  const {
+    isUniversityMode,
+    scope,
+    universityDomain,
+    facultyCode,
+  } = useUniversityStore();
+
+  // Track previous mode/scope to reset feed on change
+  const prevModeRef = useRef({ isUniversityMode, scope });
+
   const pageSize = 5;
+
+  const loadPostsForMode = useCallback(
+    async (pageNum: number) => {
+      if (isUniversityMode && universityDomain) {
+        const fc = scope === "faculty" ? facultyCode : null;
+        return fetchUniversityPosts(universityDomain, fc, pageNum, pageSize);
+      }
+      return fetchPosts(pageNum, pageSize);
+    },
+    [isUniversityMode, scope, universityDomain, facultyCode],
+  );
 
   const lastPostRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -36,7 +60,7 @@ const Home = () => {
 
   const loadMore = async () => {
     setIsLoading(true);
-    const newPosts = await fetchPosts(page, pageSize);
+    const newPosts = await loadPostsForMode(page);
 
     if (newPosts?.length < pageSize) setHasMore(false);
     setPosts([...posts, ...newPosts]);
@@ -46,11 +70,26 @@ const Home = () => {
     });
   };
 
+  // Reset feed when mode/scope changes
+  useEffect(() => {
+    const prev = prevModeRef.current;
+    if (
+      prev.isUniversityMode !== isUniversityMode ||
+      prev.scope !== scope
+    ) {
+      prevModeRef.current = { isUniversityMode, scope };
+      // Reset and reload
+      setPosts([]);
+      setHasMore(true);
+      // Page will be reset in the initial fetch effect
+    }
+  }, [isUniversityMode, scope]);
+
   useEffect(() => {
     const fetchInitial = async () => {
       try {
         setIsLoading(true);
-        const initialPosts = await fetchPosts(page, pageSize);
+        const initialPosts = await loadPostsForMode(1);
         if (initialPosts?.length > 0) {
           setPosts(initialPosts);
           incrementPage();
@@ -73,11 +112,17 @@ const Home = () => {
     return () => {
       setScrollY(window.scrollY);
     };
-  }, []);
+  }, [posts?.length === 0, loadPostsForMode]);
 
   return (
     <SeparatorLayout>
       <div style={{ overflow: "auto", height: "100%" }}>
+        {/* University mode toggle + chat panel */}
+        <div style={{ padding: "12px 16px 0" }}>
+          <UniversityModeToggle />
+          <UniversityChatPanel />
+        </div>
+
         {posts?.map((item, index) => {
           const isLast = index === posts.length - 1;
           return (
@@ -106,7 +151,13 @@ const Home = () => {
         )}
 
         {!hasMore && (
-          <NoResultsFound label="No more recommended posts for now." />
+          <NoResultsFound
+            label={
+              isUniversityMode
+                ? "No more posts from your university."
+                : "No more recommended posts for now."
+            }
+          />
         )}
       </div>
     </SeparatorLayout>
